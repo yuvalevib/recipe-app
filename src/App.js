@@ -1,25 +1,59 @@
-import logo from './logo.svg';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
+import rtlPlugin from 'stylis-plugin-rtl';
+import { prefixer } from 'stylis';
+
+import Home from './pages/Home';
+import Category from './pages/Category';
+import RecipeView from './pages/RecipeView';
+import Upload from './pages/Upload';
+import ManageCategories from './pages/ManageCategories';
+import Header from './components/Header';
 import './App.css';
 
+// יצירת קונפיגורציה ל-RTL
+const theme = createTheme({
+    direction: 'rtl',
+    palette: {
+        primary: {
+            main: '#1976d2',
+        },
+        secondary: {
+            main: '#dc004e',
+        },
+    },
+});
+
+// קאש ל-Emotion עם פלגין RTL
+const cacheRtl = createCache({
+    key: 'muirtl',
+    stylisPlugins: [prefixer, rtlPlugin],
+});
+
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <CacheProvider value={cacheRtl}>
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <Router>
+                    <Header />
+                    <div className="app-container">
+                        <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/category/:id" element={<Category />} />
+                            <Route path="/recipe/:id" element={<RecipeView />} />
+                            <Route path="/upload" element={<Upload />} />
+                            <Route path="/manage-categories" element={<ManageCategories />} />
+                        </Routes>
+                    </div>
+                </Router>
+            </ThemeProvider>
+        </CacheProvider>
+    );
 }
 
 export default App;
