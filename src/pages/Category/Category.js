@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import API from '../services/api';
-import RecipeList from '../components/RecipeList';
+import API from '../../services/api';
+import RecipeList from '../../components/RecipeList/RecipeList';
 import { Typography, Container } from '@mui/material';
+import './Category.scss';
 
 function Category() {
     const { id } = useParams();
@@ -13,9 +14,11 @@ function Category() {
     }, [id]);
 
     return (
-        <Container>
-            <Typography variant="h5" gutterBottom>Recipes in this Category</Typography>
-            <RecipeList recipes={recipes} />
+        <Container className="category-container">
+            <Typography variant="h4" gutterBottom className="category-title">
+                מתכונים
+            </Typography>
+            <RecipeList recipes={recipes} sx={{ mt: 2 }} />
         </Container>
     );
 }

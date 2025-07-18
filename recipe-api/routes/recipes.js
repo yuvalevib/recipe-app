@@ -25,6 +25,63 @@ router.get('/categories', async (req, res) => {
     }
 });
 
+// POST /api/categories - Add new category
+router.post('/categories', async (req, res) => {
+    try {
+        const { name } = req.body;
+        
+        if (!name || !name.trim()) {
+            return res.status(400).json({ message: 'Category name is required' });
+        }
+
+        const newCategory = new Category({ name: name.trim() });
+        await newCategory.save();
+        res.status(201).json(newCategory);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to create category' });
+    }
+});
+
+// PUT /api/categories/:id - Update category
+router.put('/categories/:id', async (req, res) => {
+    try {
+        const { name } = req.body;
+        
+        if (!name || !name.trim()) {
+            return res.status(400).json({ message: 'Category name is required' });
+        }
+
+        const updatedCategory = await Category.findByIdAndUpdate(
+            req.params.id,
+            { name: name.trim() },
+            { new: true }
+        );
+
+        if (!updatedCategory) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        res.json(updatedCategory);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update category' });
+    }
+});
+
+// DELETE /api/categories/:id - Delete category
+router.delete('/categories/:id', async (req, res) => {
+    try {
+        const deletedCategory = await Category.findByIdAndDelete(req.params.id);
+        
+        if (!deletedCategory) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        res.json({ message: 'Category deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete category' });
+    }
+});
+
 // GET /api/recipes/:categoryId
 router.get('/recipes/:categoryId', async (req, res) => {
     try {
@@ -70,5 +127,6 @@ router.get('/recipe/:id', async (req, res) => {
         res.status(500).json({ error: 'Failed to serve PDF' });
     }
 });
+
 
 module.exports = router;

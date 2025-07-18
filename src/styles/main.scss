@@ -1,0 +1,7 @@
+@import './variables';
+@import './mixins';
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: $background-color;
+}

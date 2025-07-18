@@ -7,12 +7,12 @@ import { CacheProvider } from '@emotion/react';
 import rtlPlugin from 'stylis-plugin-rtl';
 import { prefixer } from 'stylis';
 
-import Home from './pages/Home';
-import Category from './pages/Category';
-import RecipeView from './pages/RecipeView';
-import Upload from './pages/Upload';
-import ManageCategories from './pages/ManageCategories';
-import Header from './components/Header';
+import Home from './pages/Home/Home';
+import Category from './pages/Category/Category';
+import RecipeView from './pages/RecipeView/RecipeView';
+import Upload from './pages/Upload/Upload';
+import ManageCategories from './pages/ManageCategories/ManageCategories';
+import Header from './components/Header/Header';
 import './App.css';
 
 // יצירת קונפיגורציה ל-RTL

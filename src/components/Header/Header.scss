@@ -1,0 +1,61 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.header-appbar {
+  background-color: $primary-color !important;
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.15);
+  border-radius: 0;
+  margin-bottom: 16px;
+}
+
+.header-toolbar {
+  min-height: 70px;
+}
+
+.header-title {
+  flex-grow: 1;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.header-menu-btn {
+  margin-right: 16px;
+  background-color: #1565c0 !important;
+  border-radius: 8px;
+}
+
+.header-nav-btn {
+  margin-left: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  background: transparent;
+  transition: background 0.2s;
+  &.active {
+    border-bottom: 2px solid white;
+    background-color: #1565c0;
+  }
+  &:hover {
+    background-color: #1565c0;
+  }
+}
+
+.header-drawer {
+  .MuiPaper-root {
+    border-radius: 8px;
+    background: $input-bg;
+  }
+}
+
+.header-drawer-list-item {
+  border-radius: 8px;
+  margin-bottom: 8px;
+  &:hover {
+    background-color: $hover-bg;
+  }
+}
+
+.header-drawer-list-text {
+  text-align: right;
+  font-weight: 600;
+}

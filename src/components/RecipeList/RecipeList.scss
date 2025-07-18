@@ -1,0 +1,39 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.recipe-list-grid {
+  width: 100%;
+  .MuiGrid-container {
+    justify-content: center;
+  }
+}
+
+.recipe-card {
+  @include card;
+  transition: 0.2s;
+  &:hover {
+    box-shadow: 0 12px 32px rgba(25, 118, 210, 0.25);
+    border-color: $primary-color;
+  }
+}
+
+.recipe-card-content {
+  text-align: center;
+  background: $input-bg;
+  border-radius: $card-radius;
+}
+
+.recipe-card-title {
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.recipe-card-actions {
+  justify-content: center;
+  padding-bottom: 16px;
+}
+
+.recipe-card-btn {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
+}

@@ -1,0 +1,45 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.manage-categories-container {
+  margin-top: 32px;
+  margin-bottom: 32px;
+  max-width: 600px;
+}
+
+.manage-categories-title {
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.manage-categories-form {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.manage-categories-list {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.10);
+  padding: 16px;
+}
+
+.manage-categories-list-item {
+  margin-bottom: 8px;
+  border-radius: 8px;
+  &:hover {
+    background-color: $hover-bg;
+  }
+}
+
+.manage-categories-list-text {
+  text-align: right;
+}
+
+.manage-categories-edit-form {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}

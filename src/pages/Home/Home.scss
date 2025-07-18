@@ -1,0 +1,45 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.home-container {
+  margin-top: 48px;
+  margin-bottom: 48px;
+  max-width: 900px;
+}
+
+.home-title {
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.home-category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.10);
+  padding: 24px;
+}
+
+.home-category-item {
+  width: 100%;
+  max-width: 280px;
+  background: $input-bg;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+  margin-bottom: 16px;
+  transition: 0.2s;
+  &:hover {
+    box-shadow: 0 8px 32px rgba(25, 118, 210, 0.18);
+    background: $hover-bg;
+  }
+}
+
+.home-category-text {
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
