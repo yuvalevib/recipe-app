@@ -6,7 +6,9 @@ const fs = require('fs');
 const app = express();
 app.use(cors());
 app.use(express.json());
-const uploadsDir = path.join(__dirname, 'uploads');
+const uploadsDir = process.env.UPLOADS_DIR
+    ? path.resolve(process.env.UPLOADS_DIR)
+    : path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadsDir));
 
 console.log('[server] Starting with file storage. CWD=', process.cwd(), 'DIRNAME=', __dirname);
@@ -18,7 +20,9 @@ app.use((req, res, next) => {
 });
 
 // Ensure data directory and files exist for file-based storage
-const dataDir = path.join(__dirname, 'data');
+const dataDir = process.env.DATA_DIR
+    ? path.resolve(process.env.DATA_DIR)
+    : path.join(__dirname, 'data');
 const categoriesFile = path.join(dataDir, 'categories.json');
 const recipesFile = path.join(dataDir, 'recipes.json');
 
@@ -46,7 +50,7 @@ app.get('/api/ping', (req, res) => {
 const recipeRoutes = require('./routes/recipes');
 app.use('/api', recipeRoutes);
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
