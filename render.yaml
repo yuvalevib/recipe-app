@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: recipe-api
+    env: node
+    rootDir: recipe-api
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /ping
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: DATA_DIR
+        value: /data/data
+      - key: UPLOADS_DIR
+        value: /data/uploads
+    disk:
+      name: recipe-data
+      mountPath: /data
+      sizeGB: 1
