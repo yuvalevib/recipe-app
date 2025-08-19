@@ -42,7 +42,25 @@ const storage = multer.diskStorage({
         cb(null, Date.now() + path.extname(file.originalname));
     }
 });
-const upload = multer({ storage });
+// Allow only specific file types
+const allowedMimeTypes = new Set([
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'image/jpeg',
+    'image/png'
+]);
+const allowedExtensions = new Set(['.pdf', '.doc', '.docx', '.jpeg', '.jpg', '.png']);
+
+function fileFilter(req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedMimeTypes.has(file.mimetype) || allowedExtensions.has(ext)) {
+        return cb(null, true);
+    }
+    return cb(new Error('Unsupported file type'), false);
+}
+
+const upload = multer({ storage, fileFilter });
 
 // GET /api/categories
 router.get('/categories', async (req, res) => {
@@ -64,7 +82,7 @@ router.get('/ping', (req, res) => {
 // POST /api/categories - Add new category
 router.post('/categories', async (req, res) => {
     try {
-        const { name } = req.body;
+        const { name, imageUrl } = req.body;
 
         if (!name || !name.trim()) {
             return res.status(400).json({ message: 'Category name is required' });
@@ -72,6 +90,9 @@ router.post('/categories', async (req, res) => {
 
         const categories = await readJsonArray(categoriesFile);
         const newCategory = { _id: generateId(), name: name.trim() };
+        if (imageUrl && String(imageUrl).trim()) {
+            newCategory.imageUrl = String(imageUrl).trim();
+        }
         categories.push(newCategory);
         await writeJsonArray(categoriesFile, categories);
         res.status(201).json(newCategory);
@@ -84,7 +105,7 @@ router.post('/categories', async (req, res) => {
 // PUT /api/categories/:id - Update category
 router.put('/categories/:id', async (req, res) => {
     try {
-        const { name } = req.body;
+        const { name, imageUrl } = req.body;
 
         if (!name || !name.trim()) {
             return res.status(400).json({ message: 'Category name is required' });
@@ -95,7 +116,16 @@ router.put('/categories/:id', async (req, res) => {
         if (idx === -1) {
             return res.status(404).json({ message: 'Category not found' });
         }
-        categories[idx] = { ...categories[idx], name: name.trim() };
+        const updated = { ...categories[idx], name: name.trim() };
+        if (typeof imageUrl !== 'undefined') {
+            // Allow setting, updating, or clearing imageUrl
+            if (imageUrl === null || imageUrl === '') {
+                delete updated.imageUrl;
+            } else {
+                updated.imageUrl = String(imageUrl).trim();
+            }
+        }
+        categories[idx] = updated;
         await writeJsonArray(categoriesFile, categories);
         res.json(categories[idx]);
     } catch (err) {
@@ -138,11 +168,15 @@ router.get('/recipes/:categoryId', async (req, res) => {
 });
 
 // POST /api/upload
-router.post('/upload', upload.single('file'), async (req, res) => {
+// Accepts document file under field `file` (required) and optional image file under field `image`.
+router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'image', maxCount: 1 }]), async (req, res) => {
     try {
-        const { name, categoryId } = req.body;
+        const { name, categoryId, imageUrl } = req.body;
 
-        if (!req.file) {
+        const uploadedRecipeFile = req.files && Array.isArray(req.files.file) ? req.files.file[0] : null;
+        const uploadedImageFile = req.files && Array.isArray(req.files.image) ? req.files.image[0] : null;
+
+        if (!uploadedRecipeFile) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
         if (!name || !name.trim()) {
@@ -157,8 +191,23 @@ router.post('/upload', upload.single('file'), async (req, res) => {
             _id: generateId(),
             name: name.trim(),
             categoryId,
-            pdfPath: req.file.filename
+            pdfPath: uploadedRecipeFile.filename
         };
+
+        // Compute absolute URL helper
+        const buildAbsoluteUrl = (filename) => {
+            const host = req.get('host');
+            const protocolHeader = req.headers['x-forwarded-proto'];
+            const protocol = protocolHeader ? String(protocolHeader) : req.protocol;
+            const relativePath = `/uploads/${filename}`;
+            return `${protocol}://${host}${relativePath}`;
+        };
+
+        if (uploadedImageFile) {
+            newRecipe.imageUrl = buildAbsoluteUrl(uploadedImageFile.filename);
+        } else if (imageUrl && String(imageUrl).trim()) {
+            newRecipe.imageUrl = String(imageUrl).trim();
+        }
 
         recipes.push(newRecipe);
         await writeJsonArray(recipesFile, recipes);
@@ -185,4 +234,89 @@ router.get('/recipe/:id', async (req, res) => {
     }
 });
 
+// DELETE /api/recipe/:id - Delete recipe and its file
+router.delete('/recipe/:id', async (req, res) => {
+    try {
+        const recipes = await readJsonArray(recipesFile);
+        const idx = recipes.findIndex(r => r._id === req.params.id);
+        if (idx === -1) {
+            return res.status(404).json({ message: 'Recipe not found' });
+        }
+
+        const [deleted] = recipes.splice(idx, 1);
+        await writeJsonArray(recipesFile, recipes);
+
+        const filename = deleted && (deleted.pdfPath || deleted.filePath);
+        if (filename) {
+            try {
+                await fs.unlink(path.resolve(uploadsDir, filename));
+            } catch (fileErr) {
+                console.warn('[delete] file removal failed for', filename, fileErr && fileErr.message);
+            }
+        }
+
+        res.json({ message: 'Recipe deleted successfully' });
+    } catch (err) {
+        console.error('DELETE /recipe/:id failed:', err);
+        res.status(500).json({ error: 'Failed to delete recipe', details: String(err && err.message || err) });
+    }
+});
+
 module.exports = router;
+
+// POST /api/recipes/:id/image - Upload/replace recipe image
+router.post('/recipes/:id/image', upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No image uploaded' });
+        }
+
+        const recipes = await readJsonArray(recipesFile);
+        const idx = recipes.findIndex(r => r._id === req.params.id);
+        if (idx === -1) {
+            return res.status(404).json({ message: 'Recipe not found' });
+        }
+
+        const host = req.get('host');
+        const protocolHeader = req.headers['x-forwarded-proto'];
+        const protocol = protocolHeader ? String(protocolHeader) : req.protocol;
+        const relativePath = `/uploads/${req.file.filename}`;
+        const absoluteUrl = `${protocol}://${host}${relativePath}`;
+
+        recipes[idx] = { ...recipes[idx], imageUrl: absoluteUrl };
+        await writeJsonArray(recipesFile, recipes);
+        res.json(recipes[idx]);
+    } catch (err) {
+        console.error('POST /recipes/:id/image failed:', err);
+        res.status(500).json({ error: 'Failed to upload recipe image', details: String(err && err.message || err) });
+    }
+});
+
+// POST /api/categories/:id/image - Upload/replace category image
+router.post('/categories/:id/image', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        const categories = await readJsonArray(categoriesFile);
+        const idx = categories.findIndex(c => c._id === req.params.id);
+        if (idx === -1) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        // Build absolute URL to the uploaded file so the frontend can render it cross-origin
+        const host = req.get('host');
+        const protocolHeader = req.headers['x-forwarded-proto'];
+        const protocol = protocolHeader ? String(protocolHeader) : req.protocol;
+        const relativePath = `/uploads/${req.file.filename}`;
+        const absoluteUrl = `${protocol}://${host}${relativePath}`;
+
+        categories[idx] = { ...categories[idx], imageUrl: absoluteUrl };
+        await writeJsonArray(categoriesFile, categories);
+        res.json(categories[idx]);
+    } catch (err) {
+        console.error('POST /categories/:id/image failed:', err);
+        res.status(500).json({ error: 'Failed to upload category image', details: String(err && err.message || err) });
+    }
+});

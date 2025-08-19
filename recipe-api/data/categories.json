@@ -1,6 +1,12 @@
 [
   {
-    "_id": "meirc5t3xqzcyel6",
-    "name": "בדיקה"
+    "_id": "meis312u1uxghh9b",
+    "name": "ארוחת צהריים",
+    "imageUrl": "http://localhost:4000/uploads/1755625100064.jpeg"
+  },
+  {
+    "_id": "meite2yuuc0kydsw",
+    "name": "סלטים",
+    "imageUrl": "http://localhost:4000/uploads/1755625216597.jpeg"
   }
 ]

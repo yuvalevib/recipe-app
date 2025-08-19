@@ -4,7 +4,6 @@
 .home-container {
   margin-top: 48px;
   margin-bottom: 48px;
-  max-width: 900px;
 }
 
 .home-title {
@@ -13,33 +12,30 @@
   margin-bottom: 32px;
 }
 
-.home-category-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  justify-content: center;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.10);
-  padding: 24px;
+.home-grid {
+  margin-top: 8px;
 }
 
-.home-category-item {
-  width: 100%;
-  max-width: 280px;
-  background: $input-bg;
+.category-card {
   border-radius: 16px;
+  overflow: hidden;
   box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
-  margin-bottom: 16px;
-  transition: 0.2s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: #fff;
+
   &:hover {
-    box-shadow: 0 8px 32px rgba(25, 118, 210, 0.18);
-    background: $hover-bg;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(25, 118, 210, 0.18);
   }
 }
 
-.home-category-text {
-  text-align: center;
-  font-weight: 600;
-  font-size: 1.2rem;
+.category-media {
+  height: 180px;
+  object-fit: cover;
 }
+
+.category-title {
+  text-align: center;
+  font-weight: 700;
+}
+

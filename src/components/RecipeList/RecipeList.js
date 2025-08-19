@@ -6,17 +6,28 @@ import {
     CardContent,
     CardActions,
     Typography,
-    Button
+    Button,
+    CardMedia
 } from '@mui/material';
 import './RecipeList.scss';
 
-function RecipeList({ recipes, sx }) {
+function RecipeList({ recipes, sx, onDelete }) {
     return (
         <div className="recipe-list-grid">
             <Grid container spacing={4} sx={sx}>
                 {recipes.map(recipe => (
-                    <Grid item xs={12} sm={6} md={4} key={recipe._id}>
+                    <Grid key={recipe._id} size={{ xs: 12, sm: 6, md: 4 }}>
                         <Card className="recipe-card">
+                            {(
+                                recipe.imageUrl || `https://picsum.photos/seed/${encodeURIComponent(recipe.name || 'recipe')}/600/400`
+                            ) && (
+                                <CardMedia
+                                    component="img"
+                                    height="160"
+                                    image={recipe.imageUrl || `https://picsum.photos/seed/${encodeURIComponent(recipe.name || 'recipe')}/600/400`}
+                                    alt={recipe.name}
+                                />
+                            )}
                             <CardContent className="recipe-card-content">
                                 <Typography variant="h6" className="recipe-card-title">
                                     {recipe.name}
@@ -33,6 +44,16 @@ function RecipeList({ recipes, sx }) {
                                 >
                                   פתיחת מתכון
                                 </Button>
+                                {onDelete && (
+                                    <Button
+                                        size="medium"
+                                        onClick={() => onDelete(recipe)}
+                                        variant="outlined"
+                                        color="error"
+                                    >
+                                        מחק
+                                    </Button>
+                                )}
                             </CardActions>
                         </Card>
                     </Grid>

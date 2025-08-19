@@ -15,6 +15,8 @@ function Upload() {
     const [name, setName] = useState('');
     const [categoryId, setCategoryId] = useState('');
     const [file, setFile] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
+    const [imageUrl, setImageUrl] = useState('');
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
@@ -28,6 +30,12 @@ function Upload() {
         formData.append('name', name);
         formData.append('categoryId', categoryId);
         formData.append('file', file);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        if (imageUrl) {
+            formData.append('imageUrl', imageUrl);
+        }
 
         await API.post('/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
@@ -37,6 +45,8 @@ function Upload() {
         setName('');
         setCategoryId('');
         setFile(null);
+        setImageFile(null);
+        setImageUrl('');
     };
 
     return (
@@ -73,15 +83,39 @@ function Upload() {
                         color="primary"
                         size="large"
                     >
-                        העלה PDF
+                        העלה קובץ מתכון (PDF/Word)
                         <input
                             type="file"
                             hidden
-                            accept="application/pdf"
+                            accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf,.doc,.docx"
                             onChange={(e) => setFile(e.target.files[0])}
                             required
                         />
                     </Button>
+
+                    <Button
+                        variant="outlined"
+                        component="label"
+                        color="secondary"
+                        size="large"
+                    >
+                        העלה תמונת מתכון (אופציונלי)
+                        <input
+                            type="file"
+                            hidden
+                            accept="image/jpeg,image/png,image/jpg,image/webp,image/*"
+                            onChange={(e) => setImageFile(e.target.files[0])}
+                        />
+                    </Button>
+
+                    <TextField
+                        label="תמונת מתכון (כתובת URL, אופציונלי)"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        variant="outlined"
+                        size="medium"
+                        placeholder="https://..."
+                    />
                     <Button
                         type="submit"
                         variant="contained"

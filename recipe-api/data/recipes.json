@@ -1,8 +1,9 @@
 [
   {
-    "_id": "meircg36mn2reo0z",
-    "name": "חזה עוף",
-    "categoryId": "meirc5t3xqzcyel6",
-    "pdfPath": "1755620884331.pdf"
+    "_id": "meiu4z4wklv9qy5v",
+    "name": "ראגו בשר",
+    "categoryId": "meis312u1uxghh9b",
+    "pdfPath": "1755625574623.pdf",
+    "imageUrl": "http://localhost:4000/uploads/1755625574623.jpeg"
   }
 ]

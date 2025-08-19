@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import API from '../../services/api';
-import { Container, Typography, TextField, Button, List, ListItem, ListItemText, Stack } from '@mui/material';
+import { Container, Typography, TextField, Button, List, ListItem, ListItemText, Stack, InputAdornment, IconButton, Avatar } from '@mui/material';
+import ImageIcon from '@mui/icons-material/Image';
 import './ManageCategories.scss';
 
 function ManageCategories() {
     const [categories, setCategories] = useState([]);
     const [newCategory, setNewCategory] = useState('');
-    const [editCategory, setEditCategory] = useState({ id: '', name: '' });
+    const [newImageUrl, setNewImageUrl] = useState('');
+    const [editCategory, setEditCategory] = useState({ id: '', name: '', imageUrl: '' });
 
     useEffect(() => {
         fetchCategories();
@@ -19,15 +21,16 @@ function ManageCategories() {
 
     const handleAdd = async () => {
         if (!newCategory.trim()) return;
-        await API.post('/categories', { name: newCategory });
+        await API.post('/categories', { name: newCategory, imageUrl: newImageUrl || undefined });
         setNewCategory('');
+        setNewImageUrl('');
         fetchCategories();
     };
 
     const handleUpdate = async () => {
         if (!editCategory.name.trim()) return;
-        await API.put(`/categories/${editCategory.id}`, { name: editCategory.name });
-        setEditCategory({ id: '', name: '' });
+        await API.put(`/categories/${editCategory.id}`, { name: editCategory.name, imageUrl: editCategory.imageUrl });
+        setEditCategory({ id: '', name: '', imageUrl: '' });
         fetchCategories();
     };
 
@@ -40,6 +43,24 @@ function ManageCategories() {
                 console.error('Failed to delete category:', err);
                 alert('שגיאה במחיקת הקטגוריה');
             }
+        }
+    };
+
+    const handleUploadImage = async (categoryId, file) => {
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const res = await API.post(`/categories/${categoryId}/image`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            // Update local list quickly
+            setCategories(prev => prev.map(c => c._id === categoryId ? res.data : c));
+            // Reflect in edit state if editing this item
+            setEditCategory(ec => ec.id === categoryId ? { ...ec, imageUrl: res.data.imageUrl || '' } : ec);
+        } catch (err) {
+            console.error('Failed to upload image:', err);
+            alert('שגיאה בהעלאת תמונה');
         }
     };
 
@@ -57,6 +78,21 @@ function ManageCategories() {
                     variant="outlined"
                     size="small"
                 />
+                <TextField
+                    label="תמונת קטגוריה (כתובת URL)"
+                    value={newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
+                    variant="outlined"
+                    size="small"
+                    placeholder="https://..."
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <ImageIcon fontSize="small" />
+                            </InputAdornment>
+                        )
+                    }}
+                />
                 <Button variant="contained" color="primary" size="medium" onClick={handleAdd}>
                     הוסף
                 </Button>
@@ -69,7 +105,7 @@ function ManageCategories() {
                 {categories.map(cat => (
                     <ListItem key={cat._id} className="manage-categories-list-item" secondaryAction={
                         <Stack direction="row" spacing={1}>
-                            <Button size="small" variant="outlined" color="primary" onClick={() => setEditCategory({ id: cat._id, name: cat.name })}>
+                            <Button size="small" variant="outlined" color="primary" onClick={() => setEditCategory({ id: cat._id, name: cat.name, imageUrl: cat.imageUrl || '' })}>
                                 ערוך
                             </Button>
                             <Button 
@@ -82,6 +118,7 @@ function ManageCategories() {
                             </Button>
                         </Stack>
                     }>
+                        <Avatar src={cat.imageUrl} alt={cat.name} sx={{ mr: 1 }} />
                         <ListItemText primary={cat.name} className="manage-categories-list-text" />
                     </ListItem>
                 ))}
@@ -96,6 +133,36 @@ function ManageCategories() {
                         variant="outlined"
                         size="small"
                     />
+                    <TextField
+                        label="תמונת קטגוריה (כתובת URL)"
+                        value={editCategory.imageUrl}
+                        onChange={(e) => setEditCategory({ ...editCategory, imageUrl: e.target.value })}
+                        variant="outlined"
+                        size="small"
+                        placeholder="https://..."
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton onClick={() => setEditCategory({ ...editCategory, imageUrl: '' })} size="small" title="נקה תמונה">
+                                        <ImageIcon fontSize="small" />
+                                    </IconButton>
+                                </InputAdornment>
+                            )
+                        }}
+                    />
+                    <Button
+                        variant="outlined"
+                        component="label"
+                        size="small"
+                    >
+                        העלה תמונה
+                        <input
+                            hidden
+                            accept="image/*"
+                            type="file"
+                            onChange={(e) => handleUploadImage(editCategory.id, e.target.files && e.target.files[0])}
+                        />
+                    </Button>
                     <Button variant="contained" color="secondary" size="medium" onClick={handleUpdate}>
                         עדכן
                     </Button>

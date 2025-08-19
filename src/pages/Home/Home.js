@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import API from '../../services/api';
 import { Link } from 'react-router-dom';
-import { Typography, List, ListItem, ListItemText, Container } from '@mui/material';
+import { Typography, Container, Grid, Card, CardActionArea, CardMedia, CardContent } from '@mui/material';
 import './Home.scss';
 
 function Home() {
@@ -17,27 +17,40 @@ function Home() {
             });
     }, []);
 
+    const getCategoryImageUrl = (category) => {
+        if (category && category.imageUrl && String(category.imageUrl).trim()) {
+            return category.imageUrl;
+        }
+        const seed = encodeURIComponent((category && category.name) || 'category');
+        return `https://picsum.photos/seed/${seed}/400/300`;
+    };
+
     return (
         <Container className="home-container">
             <Typography variant="h3" gutterBottom className="home-title">
                 קטגוריות מתכונים
             </Typography>
-            <List className="home-category-list">
-                {categories.map(category => (
-                    <ListItem
-                        button={true}
-                        component={Link}
-                        to={`/category/${category._id}`}
-                        key={category._id}
-                        className="home-category-item"
-                    >
-                        <ListItemText
-                            primary={category.name}
-                            className="home-category-text"
-                        />
-                    </ListItem>
+            <Grid container spacing={3} className="home-grid">
+                {categories.map((category) => (
+                    <Grid key={category._id} size={{ xs: 12, sm: 6, md: 4 }}>
+                        <Card className="category-card" elevation={3}>
+                            <CardActionArea component={Link} to={`/category/${category._id}`}>
+                                <CardMedia
+                                    className="category-media"
+                                    component="img"
+                                    image={getCategoryImageUrl(category)}
+                                    alt={category.name}
+                                />
+                                <CardContent>
+                                    <Typography variant="h6" className="category-title">
+                                        {category.name}
+                                    </Typography>
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
+                    </Grid>
                 ))}
-            </List>
+            </Grid>
         </Container>
     );
 }
