@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL: 'http://localhost:4000/api'
+    baseURL: 'https://recipe-app-9ijm.onrender.com'  // Replace with your actual Render URL
 });
 
 export default API;
