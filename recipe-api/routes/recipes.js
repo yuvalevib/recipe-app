@@ -45,14 +45,11 @@ const storage = multer.diskStorage({
     }
 });
 // Allow only specific file types
+// Updated: restrict document uploads to PDF only (remove Word formats) while still allowing images
 const allowedMimeTypes = new Set([
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'image/jpeg',
-    'image/png'
+    'application/pdf'
 ]);
-const allowedExtensions = new Set(['.pdf', '.doc', '.docx', '.jpeg', '.jpg', '.png']);
+const allowedExtensions = new Set(['.pdf']);
 
 function fileFilter(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();

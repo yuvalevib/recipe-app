@@ -5,13 +5,5 @@
     "categoryId": "meis312u1uxghh9b",
     "pdfPath": "1755625574623.pdf",
     "imageUrl": "http://localhost:4000/uploads/1755625574623.jpeg"
-  },
-  {
-    "_id": "mer8ahffi6bsh4x7",
-    "name": "test",
-    "categoryId": "mer6gs3ikca82va4",
-    "pdfPath": "1756133075639.pdf",
-    "userId": "mer69zl2hph1dqwx",
-    "imageUrl": "http://localhost:4000/uploads/1756133075641.jpeg"
   }
 ]

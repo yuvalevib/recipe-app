@@ -83,11 +83,11 @@ function Upload() {
                         color="primary"
                         size="large"
                     >
-                        העלה קובץ מתכון (PDF/Word)
+                        העלה קובץ מתכון (PDF בלבד)
                         <input
                             type="file"
                             hidden
-                            accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf,.doc,.docx"
+                            accept="application/pdf,.pdf"
                             onChange={(e) => setFile(e.target.files[0])}
                             required
                         />
