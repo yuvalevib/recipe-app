@@ -1,5 +1,18 @@
 const express = require('express');
 const multer = require('multer');
+let cloudinary = null;
+const useCloudinary = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+if (useCloudinary) {
+    cloudinary = require('cloudinary').v2;
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+    console.log('[recipes] Cloudinary enabled');
+} else {
+    console.log('[recipes] Cloudinary not configured, using local disk storage');
+}
 const path = require('path');
 const fs = require('fs').promises;
 // Auth no longer enforced for these resource routes (login kept separately)
@@ -34,21 +47,48 @@ function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
 }
 
-// Setup multer storage for file uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadsDir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+// Setup multer storage for file uploads (buffer if cloudinary, disk otherwise)
+let storage;
+if (useCloudinary) {
+    storage = multer.memoryStorage();
+} else {
+    storage = multer.diskStorage({
+        destination: (req, file, cb) => cb(null, uploadsDir),
+        filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+    });
+}
+
+// Debug/status endpoint to check storage configuration
+router.get('/storage/status', async (req, res) => {
+    try {
+        const recipes = await readJsonArray(recipesFile);
+        const cloudRecipes = recipes.filter(r => r.pdfUrl).length;
+        const mask = (str) => str ? str.slice(0, 4) + '***' : undefined;
+        res.json({
+            useCloudinary,
+            cloudName: process.env.CLOUDINARY_CLOUD_NAME || null,
+            haveApiKey: !!process.env.CLOUDINARY_API_KEY,
+            haveApiSecret: !!process.env.CLOUDINARY_API_SECRET,
+            totalRecipes: recipes.length,
+            recipesWithCloudUrl: cloudRecipes,
+            sample: recipes.slice(-3).map(r => ({ _id: r._id, name: r.name, hasPdfUrl: !!r.pdfUrl })),
+            envSummary: {
+                CLOUDINARY_CLOUD_NAME: mask(process.env.CLOUDINARY_CLOUD_NAME || ''),
+                CLOUDINARY_API_KEY: mask(process.env.CLOUDINARY_API_KEY || ''),
+                CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? 'set' : 'missing'
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ error: 'status failed', details: e.message });
     }
 });
 // Allow only specific file types
 // Updated: restrict document uploads to PDF only (remove Word formats) while still allowing images
 const allowedMimeTypes = new Set([
-    'application/pdf'
+    'application/pdf',
+    'image/jpeg', 'image/png', 'image/webp'
 ]);
-const allowedExtensions = new Set(['.pdf']);
+const allowedExtensions = new Set(['.pdf', '.jpg', '.jpeg', '.png', '.webp']);
 
 function fileFilter(req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase();
@@ -172,8 +212,8 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'im
     try {
         const { name, categoryId, imageUrl } = req.body;
 
-        const uploadedRecipeFile = req.files && Array.isArray(req.files.file) ? req.files.file[0] : null;
-        const uploadedImageFile = req.files && Array.isArray(req.files.image) ? req.files.image[0] : null;
+    const uploadedRecipeFile = req.files && Array.isArray(req.files.file) ? req.files.file[0] : null;
+    const uploadedImageFile = req.files && Array.isArray(req.files.image) ? req.files.image[0] : null;
 
         if (!uploadedRecipeFile) {
             return res.status(400).json({ message: 'No file uploaded' });
@@ -186,12 +226,32 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'im
         }
 
         const recipes = await readJsonArray(recipesFile);
+        let pdfPath = null;
+        let pdfUrl = null;
+        if (useCloudinary) {
+            // Upload PDF buffer to cloudinary (resource_type: raw keeps original)
+            const uploadPdf = await cloudinary.uploader.upload_stream
+                ? await new Promise((resolve, reject) => {
+                    const stream = cloudinary.uploader.upload_stream({ resource_type: 'raw', folder: 'recipes' }, (err, result) => {
+                        if (err) return reject(err);
+                        resolve(result);
+                    });
+                    stream.end(uploadedRecipeFile.buffer);
+                })
+                : null;
+            pdfUrl = uploadPdf && uploadPdf.secure_url;
+            pdfPath = uploadPdf && uploadPdf.public_id; // store public id
+        } else {
+            pdfPath = uploadedRecipeFile.filename;
+        }
+
         const newRecipe = {
             _id: generateId(),
             name: name.trim(),
             categoryId,
-            pdfPath: uploadedRecipeFile.filename
+            pdfPath
         };
+        if (pdfUrl) newRecipe.pdfUrl = pdfUrl;
 
         // Compute absolute URL helper
         const buildAbsoluteUrl = (filename) => {
@@ -203,7 +263,22 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'im
         };
 
         if (uploadedImageFile) {
-            newRecipe.imageUrl = buildAbsoluteUrl(uploadedImageFile.filename);
+            if (useCloudinary) {
+                try {
+                    const uploadedImg = await new Promise((resolve, reject) => {
+                        const stream = cloudinary.uploader.upload_stream({ folder: 'recipes' }, (err, result) => {
+                            if (err) return reject(err);
+                            resolve(result);
+                        });
+                        stream.end(uploadedImageFile.buffer);
+                    });
+                    newRecipe.imageUrl = uploadedImg.secure_url;
+                } catch (e) {
+                    console.error('[cloudinary] image upload failed', e);
+                }
+            } else {
+                newRecipe.imageUrl = buildAbsoluteUrl(uploadedImageFile.filename);
+            }
         } else if (imageUrl && String(imageUrl).trim()) {
             newRecipe.imageUrl = String(imageUrl).trim();
         }
@@ -225,7 +300,10 @@ router.get('/recipe/:id', async (req, res) => {
         if (!recipe) {
             return res.status(404).send('Recipe not found');
         }
-
+        if (useCloudinary && recipe.pdfUrl) {
+            // redirect to cloudinary URL (lets browser cache, supports range)
+            return res.redirect(recipe.pdfUrl);
+        }
         res.sendFile(path.resolve(uploadsDir, recipe.pdfPath));
     } catch (err) {
         console.error('GET /recipe/:id failed:', err);
@@ -275,14 +353,29 @@ router.post('/recipes/:id/image', upload.single('image'), async (req, res) => {
         if (idx === -1) {
             return res.status(404).json({ message: 'Recipe not found' });
         }
-
-        const host = req.get('host');
-        const protocolHeader = req.headers['x-forwarded-proto'];
-        const protocol = protocolHeader ? String(protocolHeader) : req.protocol;
-        const relativePath = `/uploads/${req.file.filename}`;
-        const absoluteUrl = `${protocol}://${host}${relativePath}`;
-
-        recipes[idx] = { ...recipes[idx], imageUrl: absoluteUrl };
+        let imageUrlFinal;
+        if (useCloudinary) {
+            try {
+                const uploadedImg = await new Promise((resolve, reject) => {
+                    const stream = cloudinary.uploader.upload_stream({ folder: 'recipes' }, (err, result) => {
+                        if (err) return reject(err);
+                        resolve(result);
+                    });
+                    stream.end(req.file.buffer);
+                });
+                imageUrlFinal = uploadedImg.secure_url;
+            } catch (e) {
+                console.error('[cloudinary] image upload failed', e);
+                return res.status(500).json({ error: 'Failed to upload image' });
+            }
+        } else {
+            const host = req.get('host');
+            const protocolHeader = req.headers['x-forwarded-proto'];
+            const protocol = protocolHeader ? String(protocolHeader) : req.protocol;
+            const relativePath = `/uploads/${req.file.filename}`;
+            imageUrlFinal = `${protocol}://${host}${relativePath}`;
+        }
+        recipes[idx] = { ...recipes[idx], imageUrl: imageUrlFinal };
         await writeJsonArray(recipesFile, recipes);
         res.json(recipes[idx]);
     } catch (err) {
@@ -303,15 +396,29 @@ router.post('/categories/:id/image', upload.single('file'), async (req, res) => 
         if (idx === -1) {
             return res.status(404).json({ message: 'Category not found' });
         }
-
-        // Build absolute URL to the uploaded file so the frontend can render it cross-origin
-        const host = req.get('host');
-        const protocolHeader = req.headers['x-forwarded-proto'];
-        const protocol = protocolHeader ? String(protocolHeader) : req.protocol;
-        const relativePath = `/uploads/${req.file.filename}`;
-        const absoluteUrl = `${protocol}://${host}${relativePath}`;
-
-        categories[idx] = { ...categories[idx], imageUrl: absoluteUrl };
+        let finalUrl;
+        if (useCloudinary) {
+            try {
+                const uploadedImg = await new Promise((resolve, reject) => {
+                    const stream = cloudinary.uploader.upload_stream({ folder: 'recipes/categories' }, (err, result) => {
+                        if (err) return reject(err);
+                        resolve(result);
+                    });
+                    stream.end(req.file.buffer);
+                });
+                finalUrl = uploadedImg.secure_url;
+            } catch (e) {
+                console.error('[cloudinary] category image upload failed', e);
+                return res.status(500).json({ error: 'Failed to upload category image' });
+            }
+        } else {
+            const host = req.get('host');
+            const protocolHeader = req.headers['x-forwarded-proto'];
+            const protocol = protocolHeader ? String(protocolHeader) : req.protocol;
+            const relativePath = `/uploads/${req.file.filename}`;
+            finalUrl = `${protocol}://${host}${relativePath}`;
+        }
+        categories[idx] = { ...categories[idx], imageUrl: finalUrl };
         await writeJsonArray(categoriesFile, categories);
         res.json(categories[idx]);
     } catch (err) {

@@ -12,6 +12,9 @@ try {
     }
 } catch {}
 
+// Export base URL so other parts (e.g. PDF viewer) can build absolute URLs
+export const API_BASE_URL = baseURL;
+
 const API = axios.create({ baseURL });
 
 // Public API: no automatic auth header.
