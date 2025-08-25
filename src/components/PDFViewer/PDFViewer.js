@@ -25,16 +25,30 @@ function PDFViewer({ pdfUrl }) {
             }
             try {
                 // Use axios instance to get base URL/header, but need raw blob; fallback to fetch for streaming
-                const res = await fetch(pdfUrl);
+                // If pdfUrl points directly to Cloudinary (https://res.cloudinary.com/...), let browser load it in iframe without blob indirection
+                if (/res\.cloudinary\.com/.test(pdfUrl)) {
+                    setBlobUrl(pdfUrl);
+                    setLoading(false);
+                    return;
+                }
+                const res = await fetch(pdfUrl, { headers: { 'Accept': 'application/pdf' } });
                 if (!res.ok) {
                     throw new Error(`HTTP ${res.status}`);
                 }
-                const blob = await res.blob();
+                // Force correct MIME so iframe renders inline
+                const fetchedBlob = await res.blob();
+                const blob = fetchedBlob.type === 'application/pdf'
+                    ? fetchedBlob
+                    : new Blob([fetchedBlob], { type: 'application/pdf' });
                 if (revoked) return; // component unmounted
                 const url = URL.createObjectURL(blob);
                 setBlobUrl(url);
             } catch (e) {
-                setError('שגיאה בטעינת הקובץ');
+                if (String(e.message).includes('404')) {
+                    setError('הקובץ לא נמצא');
+                } else {
+                    setError('שגיאה בטעינת הקובץ');
+                }
                 console.error('[PDFViewer] Failed to load PDF', e);
             } finally {
                 if (!revoked) setLoading(false);

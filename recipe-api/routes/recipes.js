@@ -229,10 +229,11 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'im
         let pdfPath = null;
         let pdfUrl = null;
         if (useCloudinary) {
-            // Upload PDF buffer to cloudinary (resource_type: raw keeps original)
+            // Upload PDF to Cloudinary using resource_type 'auto' so PDFs get correct content-type (application/pdf)
+            // Using 'raw' often sets generic octet-stream causing browsers to download instead of display inline.
             const uploadPdf = await cloudinary.uploader.upload_stream
                 ? await new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream({ resource_type: 'raw', folder: 'recipes' }, (err, result) => {
+                    const stream = cloudinary.uploader.upload_stream({ resource_type: 'auto', folder: 'recipes' }, (err, result) => {
                         if (err) return reject(err);
                         resolve(result);
                     });
@@ -240,7 +241,7 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'im
                 })
                 : null;
             pdfUrl = uploadPdf && uploadPdf.secure_url;
-            pdfPath = uploadPdf && uploadPdf.public_id; // store public id
+            pdfPath = uploadPdf && uploadPdf.public_id; // store public id (public_id used for generating derived URLs if needed)
         } else {
             pdfPath = uploadedRecipeFile.filename;
         }
@@ -301,10 +302,14 @@ router.get('/recipe/:id', async (req, res) => {
             return res.status(404).send('Recipe not found');
         }
         if (useCloudinary && recipe.pdfUrl) {
-            // redirect to cloudinary URL (lets browser cache, supports range)
+            // Cloudinary already serves with correct headers; redirect
             return res.redirect(recipe.pdfUrl);
         }
-        res.sendFile(path.resolve(uploadsDir, recipe.pdfPath));
+        const filePath = path.resolve(uploadsDir, recipe.pdfPath);
+        // Ensure inline viewing
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${path.basename(filePath)}"`);
+        res.sendFile(filePath);
     } catch (err) {
         console.error('GET /recipe/:id failed:', err);
         res.status(500).json({ error: 'Failed to serve PDF', details: String(err && err.message || err) });
