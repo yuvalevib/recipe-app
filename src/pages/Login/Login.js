@@ -79,9 +79,6 @@ function Login({ onLogin }) {
             <TextField label="שם משתמש" value={username} onChange={(e) => setUsername(e.target.value)} required autoFocus />
             <TextField label="סיסמה" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             <Button type="submit" variant="contained" color="primary" disabled={loading}>{loading ? 'מתחבר...' : 'התחבר'}</Button>
-            <Typography variant="caption" align="center" sx={{ opacity: 0.7 }}>
-              משתמש הדגמה קבוע: {DUMMY_USERNAME} / {DUMMY_PASSWORD}
-            </Typography>
           </Stack>
         </form>
       </Paper>
