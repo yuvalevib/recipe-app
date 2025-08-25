@@ -25,10 +25,7 @@ function PDFViewer({ pdfUrl }) {
             }
             try {
                 // Use axios instance to get base URL/header, but need raw blob; fallback to fetch for streaming
-                const token = localStorage.getItem('authToken');
-                const res = await fetch(pdfUrl, {
-                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-                });
+                const res = await fetch(pdfUrl);
                 if (!res.ok) {
                     throw new Error(`HTTP ${res.status}`);
                 }

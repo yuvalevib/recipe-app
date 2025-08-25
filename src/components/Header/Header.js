@@ -69,7 +69,7 @@ function Header() {
                 </Box>
             )}
             <List>
-                {[...baseNavItems, ...(user ? protectedNavItems : [])].map((item) => (
+                {[...baseNavItems, ...protectedNavItems].map((item) => (
                     <ListItem
                         button
                         key={item.label}
@@ -127,7 +127,7 @@ function Header() {
 
                     {/* כפתורים במסכים גדולים */}
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, alignItems: 'center' }}>
-                        {[...baseNavItems, ...(user ? protectedNavItems : [])].map((item) => (
+                        {[...baseNavItems, ...protectedNavItems].map((item) => (
                             <Button
                                 key={item.label}
                                 color="inherit"

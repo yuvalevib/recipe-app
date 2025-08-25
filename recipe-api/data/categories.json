@@ -1,15 +1,5 @@
 [
   {
-    "_id": "meis312u1uxghh9b",
-    "name": "ארוחת צהריים",
-    "imageUrl": "http://localhost:4000/uploads/1755625100064.jpeg"
-  },
-  {
-    "_id": "meite2yuuc0kydsw",
-    "name": "סלטים",
-    "imageUrl": "http://localhost:4000/uploads/1755625216597.jpeg"
-  },
-  {
     "_id": "mer6p48qc6cll7mu",
     "name": "בצקים",
     "userId": "mer69zl2hph1dqwx",
