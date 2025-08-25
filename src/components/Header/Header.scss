@@ -5,7 +5,6 @@
   background-color: $primary-color !important;
   box-shadow: 0 4px 16px rgba(red($primary-color), green($primary-color), blue($primary-color), 0.15);
   border-radius: 0;
-  margin-bottom: 16px;
 }
 
 .header-toolbar {
@@ -53,4 +52,23 @@
 .header-drawer-list-text {
   text-align: right;
   font-weight: 600;
+}
+
+.header-user {
+  .header-username {
+    color: $color-frost-white;
+  }
+}
+
+.header-avatar {
+  border: 2px solid rgba(255,255,255,0.4);
+  font-weight: 600;
+}
+
+.header-drawer-user {
+  background: linear-gradient(135deg, $primary-color, darken($primary-color, 8%));
+  color: $color-frost-white;
+  border-radius: 0 0 12px 12px;
+  .header-username { font-weight: 600; }
+  .header-avatar { box-shadow: 0 0 0 3px rgba(255,255,255,0.25); }
 }

@@ -2,6 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
+const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('./auth');
 
 const router = express.Router();
 
@@ -62,12 +64,31 @@ function fileFilter(req, file, cb) {
 
 const upload = multer({ storage, fileFilter });
 
-// GET /api/categories
+// --- Auth middleware ---
+function authRequired(req, res, next) {
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ message: 'Unauthorized' });
+    try {
+        const payload = jwt.verify(token, JWT_SECRET);
+        req.user = payload;
+        next();
+    } catch (e) {
+        return res.status(401).json({ message: 'Invalid token' });
+    }
+}
+
+// All subsequent routes require auth (per-user data isolation)
+router.use(authRequired);
+
+// GET /api/categories (user-specific)
 router.get('/categories', async (req, res) => {
     try {
-        console.log('[routes] GET /categories reading from', categoriesFile);
+        console.log('[routes] GET /categories reading from', categoriesFile, 'for user', req.user && req.user.sub);
         const categories = await readJsonArray(categoriesFile);
-        res.json(categories);
+        // Return only categories owned by this user (ignore legacy categories without userId)
+        const filtered = categories.filter(c => c.userId === req.user.sub);
+        res.json(filtered);
     } catch (err) {
         console.error('GET /categories failed:', err);
         res.status(500).json({ error: 'Failed to fetch categories', details: String(err && err.message || err) });
@@ -88,8 +109,8 @@ router.post('/categories', async (req, res) => {
             return res.status(400).json({ message: 'Category name is required' });
         }
 
-        const categories = await readJsonArray(categoriesFile);
-        const newCategory = { _id: generateId(), name: name.trim() };
+    const categories = await readJsonArray(categoriesFile);
+    const newCategory = { _id: generateId(), name: name.trim(), userId: req.user.sub };
         if (imageUrl && String(imageUrl).trim()) {
             newCategory.imageUrl = String(imageUrl).trim();
         }
@@ -112,7 +133,7 @@ router.put('/categories/:id', async (req, res) => {
         }
 
         const categories = await readJsonArray(categoriesFile);
-        const idx = categories.findIndex(c => c._id === req.params.id);
+    const idx = categories.findIndex(c => c._id === req.params.id && c.userId === req.user.sub);
         if (idx === -1) {
             return res.status(404).json({ message: 'Category not found' });
         }
@@ -139,7 +160,7 @@ router.delete('/categories/:id', async (req, res) => {
     try {
         const categories = await readJsonArray(categoriesFile);
         const recipes = await readJsonArray(recipesFile);
-        const idx = categories.findIndex(c => c._id === req.params.id);
+    const idx = categories.findIndex(c => c._id === req.params.id && c.userId === req.user.sub);
         if (idx === -1) {
             return res.status(404).json({ message: 'Category not found' });
         }
@@ -159,7 +180,7 @@ router.delete('/categories/:id', async (req, res) => {
 router.get('/recipes/:categoryId', async (req, res) => {
     try {
         const recipes = await readJsonArray(recipesFile);
-        const filtered = recipes.filter(r => r.categoryId === req.params.categoryId);
+    const filtered = recipes.filter(r => r.categoryId === req.params.categoryId && r.userId === req.user.sub);
         res.json(filtered);
     } catch (err) {
         console.error('GET /recipes/:categoryId failed:', err);
@@ -191,7 +212,8 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'im
             _id: generateId(),
             name: name.trim(),
             categoryId,
-            pdfPath: uploadedRecipeFile.filename
+            pdfPath: uploadedRecipeFile.filename,
+            userId: req.user.sub
         };
 
         // Compute absolute URL helper
@@ -222,7 +244,7 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'im
 router.get('/recipe/:id', async (req, res) => {
     try {
         const recipes = await readJsonArray(recipesFile);
-        const recipe = recipes.find(r => r._id === req.params.id);
+    const recipe = recipes.find(r => r._id === req.params.id && r.userId === req.user.sub);
         if (!recipe) {
             return res.status(404).send('Recipe not found');
         }
@@ -238,7 +260,7 @@ router.get('/recipe/:id', async (req, res) => {
 router.delete('/recipe/:id', async (req, res) => {
     try {
         const recipes = await readJsonArray(recipesFile);
-        const idx = recipes.findIndex(r => r._id === req.params.id);
+    const idx = recipes.findIndex(r => r._id === req.params.id && r.userId === req.user.sub);
         if (idx === -1) {
             return res.status(404).json({ message: 'Recipe not found' });
         }
@@ -272,7 +294,7 @@ router.post('/recipes/:id/image', upload.single('image'), async (req, res) => {
         }
 
         const recipes = await readJsonArray(recipesFile);
-        const idx = recipes.findIndex(r => r._id === req.params.id);
+    const idx = recipes.findIndex(r => r._id === req.params.id && r.userId === req.user.sub);
         if (idx === -1) {
             return res.status(404).json({ message: 'Recipe not found' });
         }
@@ -300,7 +322,7 @@ router.post('/categories/:id/image', upload.single('file'), async (req, res) => 
         }
 
         const categories = await readJsonArray(categoriesFile);
-        const idx = categories.findIndex(c => c._id === req.params.id);
+    const idx = categories.findIndex(c => c._id === req.params.id && c.userId === req.user.sub);
         if (idx === -1) {
             return res.status(404).json({ message: 'Category not found' });
         }

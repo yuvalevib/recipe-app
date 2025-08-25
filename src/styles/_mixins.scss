@@ -19,6 +19,7 @@
   box-shadow: $btn-shadow !important;
   text-transform: none !important;
   transition: $btn-transition !important;
+  
   &:hover, &:focus {
     background-color: $bg-hover !important;
     box-shadow: 0 4px 16px primary-rgba(0.25) !important;

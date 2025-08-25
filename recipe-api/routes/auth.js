@@ -28,7 +28,7 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
 }
 
-// Register (simple, for initial admin creation)
+// Register (simple, for initial admin creation) - now also returns a JWT token so client can auto-login
 router.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -41,7 +41,8 @@ router.post('/register', async (req, res) => {
     const user = { _id: generateId(), username, passwordHash: hash, role: users.length === 0 ? 'admin' : 'user' };
     users.push(user);
     await writeUsers(users);
-    res.status(201).json({ _id: user._id, username: user.username, role: user.role });
+    const token = jwt.sign({ sub: user._id, username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    res.status(201).json({ token, user: { _id: user._id, username: user.username, role: user.role } });
   } catch (e) {
     res.status(500).json({ message: 'register failed', error: e.message });
   }

@@ -9,7 +9,9 @@ import {
     ListItem,
     ListItemText,
     Box,
-    Button
+    Button,
+    Avatar,
+    Stack
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -55,6 +57,16 @@ function Header() {
             onClick={toggleDrawer(false)}
             className="header-drawer"
         >
+            {user && (
+                <Box className="header-drawer-user" sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Avatar className="header-avatar" sx={{ bgcolor: 'secondary.main' }}>
+                        {user.username?.[0]?.toUpperCase() || '?'}
+                    </Avatar>
+                    <Typography variant="subtitle1" className="header-username">
+                        {user.username}
+                    </Typography>
+                </Box>
+            )}
             <List>
                 {[...baseNavItems, ...(user ? protectedNavItems : [])].map((item) => (
                     <ListItem
@@ -85,6 +97,18 @@ function Header() {
         <>
             <AppBar position="static" className="header-appbar">
                 <Toolbar className="header-toolbar">
+                    {/* User avatar & name (right side in RTL) */}
+                    {user && (
+                        <Stack direction="row" spacing={1} alignItems="center" className="header-user" sx={{ display: { xs: 'none', md: 'flex' }, mr: 2 }}>
+                            <Avatar className="header-avatar" sx={{ width: 40, height: 40, bgcolor: 'secondary.main', fontSize: 18 }}>
+                                {user.username?.[0]?.toUpperCase() || '?'}
+                            </Avatar>
+                            <Typography variant="subtitle1" className="header-username" sx={{ fontWeight: 600 }}>
+                                {user.username}
+                            </Typography>
+                        </Stack>
+                    )}
+
                     {/* אייקון תפריט במסכים קטנים */}
                     <IconButton
                         color="inherit"
@@ -101,7 +125,7 @@ function Header() {
                     </Typography>
 
                     {/* כפתורים במסכים גדולים */}
-                    <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
+                    <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, alignItems: 'center' }}>
                         {[...baseNavItems, ...(user ? protectedNavItems : [])].map((item) => (
                             <Button
                                 key={item.label}

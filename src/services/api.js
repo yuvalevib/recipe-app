@@ -1,8 +1,18 @@
 import axios from 'axios';
 
-const API = axios.create({
-    baseURL: 'https://recipe-app-9ijm.onrender.com/api'
-});
+// Determine API base URL: allow .env override, prefer same-origin or localhost during local dev
+const envBase = process.env.REACT_APP_API_BASE;
+let baseURL = envBase || 'https://recipe-app-9ijm.onrender.com/api';
+try {
+    if (typeof window !== 'undefined') {
+        const isLocalhost = /localhost|127\.0\.0\.1/.test(window.location.hostname);
+        if (isLocalhost) {
+            baseURL = envBase || 'http://localhost:4000/api';
+        }
+    }
+} catch {}
+
+const API = axios.create({ baseURL });
 
 // Attach token if present
 API.interceptors.request.use((config) => {

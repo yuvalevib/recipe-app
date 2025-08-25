@@ -68,3 +68,38 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Multi-User Data (Custom Additions)
+
+The backend has been adapted for per-user data isolation:
+
+* Every category and recipe now has a `userId` (taken from the JWT `sub`).
+* All `/api/categories`, `/api/recipes/:categoryId`, upload, update, and delete routes require an `Authorization: Bearer <token>` header and only operate on the authenticated user's data.
+* Registration (`POST /api/auth/register`) now returns a token so the client can auto-login.
+
+### Migrating Existing Data
+
+If you had existing `categories.json` / `recipes.json` without `userId`, run the migration assigning them to a chosen user (e.g., the first created admin user):
+
+```bash
+cd recipe-api
+# Replace with a real existing user _id from users.json (create one via register if needed)
+JWT_USER_ID=<userId> node migrate-add-userId.js
+```
+
+After this, restart the server. Old items will appear only for that user.
+
+### Adding a New User
+
+1. Call `POST /api/auth/register` with `{ "username": "name", "password": "pass" }`.
+2. Use returned token for subsequent API calls.
+
+### Frontend Behavior
+
+* Login page lets you toggle between login and registration.
+* Each logged-in user sees only their own categories and recipes.
+* Upload form lists only the user's categories.
+
+### Notes
+
+This is a lightweight file-based implementation. For production, consider migrating to a database (e.g., MongoDB) and enforcing unique indices plus stronger validation.

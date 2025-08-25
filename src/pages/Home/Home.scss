@@ -1,11 +1,9 @@
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-.home-container {
-  margin-top: 48px;
-  margin-bottom: 48px;
+.home-container{
+  padding: 0;
 }
-
 .home-title {
   font-weight: 700;
   text-align: center;
@@ -14,6 +12,9 @@
 
 .home-grid {
   margin-top: 8px;
+  height: calc(100vh - 200px);
+  overflow: scroll;
+  padding: 20px;
 }
 
 .category-card {
