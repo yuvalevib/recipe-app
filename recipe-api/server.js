@@ -4,7 +4,43 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-app.use(cors());
+
+// CORS configuration (supports explicit whitelist via env var CORS_ORIGINS="https://a.com,https://b.com")
+const rawOrigins = process.env.CORS_ORIGINS || '';
+const allowedOrigins = rawOrigins.split(',').map(o => o.trim()).filter(Boolean);
+// Always include GitHub Pages repo pages if GITHUB_PAGES_USER/REPO provided
+if (process.env.GH_PAGES_USER && process.env.GH_PAGES_REPO) {
+    allowedOrigins.push(`https://${process.env.GH_PAGES_USER}.github.io`, `https://${process.env.GH_PAGES_USER}.github.io/${process.env.GH_PAGES_REPO}`);
+}
+// Provide a sensible default for your current GitHub Pages domain
+if (!allowedOrigins.length) {
+    allowedOrigins.push('https://yuvalevib.github.io');
+}
+
+app.use(cors({
+    origin: function(origin, callback) {
+        if (!origin) return callback(null, true); // non-browser or same-origin
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        // Allow subpath match (GitHub Pages project pages include repo suffix)
+        if (allowedOrigins.some(o => origin.startsWith(o))) return callback(null, true);
+        console.warn('[CORS] Blocked origin:', origin);
+        return callback(new Error('Not allowed by CORS'));
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type,Authorization',
+    credentials: false,
+    optionsSuccessStatus: 204
+}));
+
+// Extra header safeguard (adds wildcard if no specific origin matched and request is simple GET)
+app.use((req,res,next)=>{
+    if (!res.get('Access-Control-Allow-Origin')) {
+        // If origin was accepted earlier, cors middleware already set it.
+        // We don't want to leak * when restricted, so only set * when whitelist contains '*'.
+        if (allowedOrigins.includes('*')) res.setHeader('Access-Control-Allow-Origin','*');
+    }
+    next();
+});
 app.use(express.json());
 const uploadsDir = process.env.UPLOADS_DIR
     ? path.resolve(process.env.UPLOADS_DIR)
@@ -45,6 +81,11 @@ app.get('/ping', (req, res) => {
 });
 app.get('/api/ping', (req, res) => {
     res.json({ ok: true });
+});
+
+// Quick CORS test endpoint
+app.get('/api/cors-test', (req,res)=>{
+    res.json({ ok:true, origin:req.headers.origin||null, allowedOrigins });
 });
 
 // Auth routes
