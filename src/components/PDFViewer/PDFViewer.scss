@@ -1,10 +1,41 @@
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-.pdf-viewer-fullsize { position: fixed; inset:0; width:100vw; height:100vh; background: $background-color; z-index: 9999; @include flex-center; flex-direction: column; padding:0; @include fade-in(.3s); }
+.pdf-viewer-fullsize { 
+    position: fixed;
+    inset:0;
+    width:100vw;
+    height:100vh;
+    background: $background-color;
+    z-index: 9999;
+    @include flex-center;
+    flex-direction: column;
+    padding:0;
+    @include fade-in(.3s);
+}
 
-.pdf-viewer-iframe-fullsize { width: 90vw; height: calc(100vh - 120px); border:none; @include card; border-radius: 24px; box-shadow: $shadow-md; @include slide-up-fade(30px,.4s); }
+.pdf-viewer-iframe-fullsize {
+     width: 90vw;
+     height: calc(100vh - 120px);
+     border:none;
+     @include card;
+     border-radius: 24px;
+     box-shadow: $shadow-md;
+     @include slide-up-fade(30px,.4s);
+}
 
-.pdf-viewer-btn { position: relative; margin-bottom: $spacing-sm; font-size: 16px; @include app-button(); z-index: 10000; @include slide-up-fade(20px,.35s); }
+.pdf-viewer-btn {
+    position: relative;
+    margin-bottom: $spacing-sm;
+    font-size: 16px;
+    @include app-button();
+    z-index: 10000;
+    @include slide-up-fade(20px,.35s);
+}
 
-.pdf-viewer-btn.fullsize { position:absolute; top:$spacing-lg; right:$spacing-xl; margin-bottom:0; }
+.pdf-viewer-btn.fullsize {
+    position:absolute;
+    top:$spacing-lg;
+    right:$spacing-xl;
+    margin-bottom:0;
+}

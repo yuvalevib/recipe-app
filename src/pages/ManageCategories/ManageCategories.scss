@@ -3,11 +3,22 @@
 
 .manage-categories-container {
   max-width: 600px;
+  height: calc(100vh - 220px);
+  overflow: auto;
 }
 
-.manage-categories-title { font-weight: $font-weight-bold; text-align: center; margin-bottom: $spacing-lg; color: $text-color; }
+.manage-categories-title { 
+  font-weight: $font-weight-bold; 
+  text-align: center; 
+  margin-bottom: $spacing-lg; 
+  color: $text-color; 
+}
 
-.manage-categories-form { display: flex; justify-content: center; margin-bottom: $spacing-lg; }
+.manage-categories-form { 
+  display: flex; 
+  justify-content: center; 
+  margin-bottom: $spacing-lg; 
+}
 
 .manage-categories-form .MuiButton-root,
 .manage-categories-edit-form .MuiButton-root,
@@ -16,9 +27,22 @@
   padding: 0.4rem 1rem !important;
 }
 
-.manage-categories-list { border-radius: 16px; box-shadow: $shadow-sm; padding: $spacing-md; background: $surface-color; @include fade-in(.5s,.1s); border: 1px solid $border-color; }
+.manage-categories-list {
+   border-radius: 16px;
+   box-shadow: $shadow-sm;
+   padding: $spacing-md;
+   background: $surface-color;
+   @include fade-in(.5s,.1s);
+   border: 1px solid $border-color;
+}
 
-.manage-categories-list-item { margin-bottom: $spacing-sm; border-radius: 8px; &:hover { background: $hover-bg; } }
+.manage-categories-list-item {
+   margin-bottom: $spacing-sm;
+   border-radius: 8px;
+   &:hover {
+       background: $hover-bg;
+   }
+}
 
 .manage-categories-list-text {
   text-align: right;

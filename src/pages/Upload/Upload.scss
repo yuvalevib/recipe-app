@@ -5,16 +5,30 @@
   margin-top: 48px;
   margin-bottom: 48px;
   max-width: 600px;
-    height: calc(100vh - 220px);
-
+  height: calc(100vh - 220px);
   overflow: auto;
 }
 
-.upload-paper { padding: $spacing-2xl; border-radius: 24px; box-shadow: $shadow-md; background: $surface-color; @include slide-up-fade(20px,.5s); }
+.upload-paper { 
+  padding: $spacing-2xl; 
+  border-radius: 24px; 
+  box-shadow: $shadow-md; 
+  background: $surface-color; 
+  @include slide-up-fade(20px,.5s); 
+}
 
-.upload-title { font-weight: $font-weight-bold; text-align: center; margin-bottom: $spacing-xl; color: $text-color; }
+.upload-title { 
+  font-weight: $font-weight-bold; 
+  text-align: center; 
+  margin-bottom: $spacing-xl; 
+  color: $text-color; 
+}
 
-.upload-form { display: flex; flex-direction: column; gap: $spacing-lg; }
+.upload-form { 
+  display: flex; 
+  flex-direction: column; 
+  gap: $spacing-lg; 
+}
 
 .upload-form .MuiButton-root {
   @include app-button();
