@@ -4,12 +4,21 @@ let cloudinary = null;
 const useCloudinary = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
 if (useCloudinary) {
     cloudinary = require('cloudinary').v2;
-    cloudinary.config({
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_API_SECRET
-    });
-    console.log('[recipes] Cloudinary enabled');
+    const clean = (v) => (v || '').trim().replace(/^['"]|['"]$/g, '').replace(/,+$/,'');
+    const cfg = {
+        cloud_name: clean(process.env.CLOUDINARY_CLOUD_NAME),
+        api_key: clean(process.env.CLOUDINARY_API_KEY),
+        api_secret: clean(process.env.CLOUDINARY_API_SECRET)
+    };
+    cloudinary.config(cfg);
+    const mask = (s) => s ? s.slice(0,4) + '***' : '';
+    console.log('[recipes] Cloudinary enabled', { cloud: mask(cfg.cloud_name), key: mask(cfg.api_key) });
+    if (/(,|"|')$/.test(process.env.CLOUDINARY_API_KEY || '')) {
+        console.warn('[recipes][cloudinary] Detected trailing punctuation in CLOUDINARY_API_KEY environment variable; sanitized automatically. Please fix .env');
+    }
+    if (!/^\d+$/.test(cfg.api_key)) {
+        console.warn('[recipes][cloudinary] API key contains non-numeric characters after sanitization. Verify value in Cloudinary dashboard.');
+    }
 } else {
     console.log('[recipes] Cloudinary not configured, using local disk storage');
 }
@@ -101,6 +110,17 @@ function fileFilter(req, file, cb) {
 const upload = multer({ storage, fileFilter });
 
 // All routes are now public.
+
+// Cloudinary status diagnostic (no secrets leaked)
+router.get('/cloudinary/status', (req, res) => {
+    res.json({
+        useCloudinary,
+        hasCloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
+        hasApiKey: !!process.env.CLOUDINARY_API_KEY,
+        hasApiSecret: !!process.env.CLOUDINARY_API_SECRET ? 'set' : 'missing',
+        sampleUploadFolder: useCloudinary ? 'recipes' : null
+    });
+});
 
 // GET /api/categories (user-specific)
 router.get('/categories', async (req, res) => {
@@ -218,6 +238,9 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'im
         if (!uploadedRecipeFile) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
+        if (uploadedRecipeFile.mimetype !== 'application/pdf') {
+            return res.status(400).json({ message: 'Main recipe file must be a PDF', receivedType: uploadedRecipeFile.mimetype });
+        }
         if (!name || !name.trim()) {
             return res.status(400).json({ message: 'Recipe name is required' });
         }
@@ -229,19 +252,27 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'im
         let pdfPath = null;
         let pdfUrl = null;
         if (useCloudinary) {
-            // Upload PDF to Cloudinary using resource_type 'auto' so PDFs get correct content-type (application/pdf)
-            // Using 'raw' often sets generic octet-stream causing browsers to download instead of display inline.
-            const uploadPdf = await cloudinary.uploader.upload_stream
-                ? await new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream({ resource_type: 'auto', folder: 'recipes' }, (err, result) => {
+            try {
+                const pdfOptions = { resource_type: 'raw', folder: 'recipes/pdfs' };
+                console.log('[cloudinary][pdf] starting upload', { mimetype: uploadedRecipeFile.mimetype, size: uploadedRecipeFile.size, options: pdfOptions });
+                const uploadPdf = await (cloudinary.uploader.upload_stream ? new Promise((resolve, reject) => {
+                    const stream = cloudinary.uploader.upload_stream(pdfOptions, (err, result) => {
                         if (err) return reject(err);
                         resolve(result);
                     });
                     stream.end(uploadedRecipeFile.buffer);
-                })
-                : null;
-            pdfUrl = uploadPdf && uploadPdf.secure_url;
-            pdfPath = uploadPdf && uploadPdf.public_id; // store public id (public_id used for generating derived URLs if needed)
+                }) : null);
+                pdfUrl = uploadPdf && uploadPdf.secure_url;
+                pdfPath = uploadPdf && uploadPdf.public_id;
+                if (!uploadPdf) {
+                    console.warn('[cloudinary][pdf] upload_stream returned null/undefined');
+                } else {
+                    console.log('[cloudinary][pdf] uploaded', { public_id: uploadPdf.public_id, bytes: uploadPdf.bytes, format: uploadPdf.format });
+                }
+            } catch (e) {
+                console.error('[cloudinary][pdf] upload failed', e && e.message, e && e.http_code);
+                return res.status(500).json({ error: 'Cloudinary PDF upload failed', details: e && e.message });
+            }
         } else {
             pdfPath = uploadedRecipeFile.filename;
         }
@@ -267,15 +298,20 @@ router.post('/upload', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'im
             if (useCloudinary) {
                 try {
                     const uploadedImg = await new Promise((resolve, reject) => {
-                        const stream = cloudinary.uploader.upload_stream({ folder: 'recipes' }, (err, result) => {
+                        const stream = cloudinary.uploader.upload_stream({ folder: 'recipes/images' }, (err, result) => {
                             if (err) return reject(err);
                             resolve(result);
                         });
                         stream.end(uploadedImageFile.buffer);
                     });
-                    newRecipe.imageUrl = uploadedImg.secure_url;
+                    if (!uploadedImg) {
+                        console.warn('[cloudinary][image] upload_stream returned null/undefined');
+                    } else {
+                        console.log('[cloudinary][image] uploaded', { public_id: uploadedImg.public_id, format: uploadedImg.format, bytes: uploadedImg.bytes });
+                        newRecipe.imageUrl = uploadedImg.secure_url;
+                    }
                 } catch (e) {
-                    console.error('[cloudinary] image upload failed', e);
+                    console.error('[cloudinary] image upload failed', e && e.message, e && e.http_code, e && e.name);
                 }
             } else {
                 newRecipe.imageUrl = buildAbsoluteUrl(uploadedImageFile.filename);

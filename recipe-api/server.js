@@ -32,6 +32,10 @@ const app = express();
 // CORS configuration (supports explicit whitelist via env var CORS_ORIGINS="https://a.com,https://b.com")
 const rawOrigins = process.env.CORS_ORIGINS || '';
 const allowedOrigins = rawOrigins.split(',').map(o => o.trim()).filter(Boolean);
+// Always allow local dev origins for convenience
+['http://localhost:3000','http://127.0.0.1:3000'].forEach(dev => {
+    if (!allowedOrigins.includes(dev)) allowedOrigins.push(dev);
+});
 // Always include GitHub Pages repo pages if GITHUB_PAGES_USER/REPO provided
 if (process.env.GH_PAGES_USER && process.env.GH_PAGES_REPO) {
     allowedOrigins.push(`https://${process.env.GH_PAGES_USER}.github.io`, `https://${process.env.GH_PAGES_USER}.github.io/${process.env.GH_PAGES_REPO}`);
