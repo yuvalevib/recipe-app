@@ -8,20 +8,9 @@
   }
 }
 
-.recipe-card {
-  @include card;
-  transition: 0.2s;
-  &:hover {
-    box-shadow: 0 12px 32px primary-rgba(0.25);
-    border-color: $primary-color;
-  }
-}
+.recipe-card { @include card; transition: .2s ease; @include scale-in(.97,.45s); &:hover { box-shadow: $shadow-md; transform: translateY(-4px); } }
 
-.recipe-card-content {
-  text-align: center;
-  background: $input-bg;
-  border-radius: $card-radius;
-}
+.recipe-card-content { text-align: center; background: $input-bg; border-radius: $card-radius; }
 
 .recipe-card-title {
   font-weight: 700;
@@ -33,7 +22,4 @@
   padding-bottom: 16px;
 }
 
-.recipe-card-btn {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px primary-rgba(0.15);
-}
+.recipe-card-btn { @include app-button(); }

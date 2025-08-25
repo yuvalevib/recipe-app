@@ -5,17 +5,9 @@
   max-width: 600px;
 }
 
-.manage-categories-title {
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 24px;
-}
+.manage-categories-title { font-weight: $font-weight-bold; text-align: center; margin-bottom: $spacing-lg; color: $text-color; }
 
-.manage-categories-form {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 24px;
-}
+.manage-categories-form { display: flex; justify-content: center; margin-bottom: $spacing-lg; }
 
 .manage-categories-form .MuiButton-root,
 .manage-categories-edit-form .MuiButton-root,
@@ -24,20 +16,9 @@
   padding: 0.4rem 1rem !important;
 }
 
-.manage-categories-list {
-  background: $surface-color;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px primary-rgba(0.10);
-  padding: 16px;
-}
+.manage-categories-list { border-radius: 16px; box-shadow: $shadow-sm; padding: $spacing-md; background: $surface-color; @include fade-in(.5s,.1s); border: 1px solid $border-color; }
 
-.manage-categories-list-item {
-  margin-bottom: 8px;
-  border-radius: 8px;
-  &:hover {
-    background-color: $hover-bg;
-  }
-}
+.manage-categories-list-item { margin-bottom: $spacing-sm; border-radius: 8px; &:hover { background: $hover-bg; } }
 
 .manage-categories-list-text {
   text-align: right;

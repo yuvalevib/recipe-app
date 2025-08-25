@@ -1,11 +1,7 @@
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-.header-appbar {
-  background-color: $primary-color !important;
-  box-shadow: 0 4px 16px rgba(red($primary-color), green($primary-color), blue($primary-color), 0.15);
-  border-radius: 0;
-}
+.header-appbar { background: $header-gradient !important; box-shadow: $shadow-sm !important; border: 0; }
 
 .header-toolbar {
   min-height: 70px;
@@ -18,36 +14,13 @@
   letter-spacing: 1px;
 }
 
-.header-menu-btn {
-  margin-right: 16px;
-  background-color: $primary-color-hover !important;
-  border-radius: 8px;
-}
+.header-menu-btn { margin-right: $spacing-md; @include app-button($primary-color, $color-frost-white, $primary-color-hover); }
 
-.header-nav-btn {
-  margin-left: 16px;
-  @include app-button(transparent, $color-frost-white, $primary-color-hover);
-  background: transparent !important;
-  box-shadow: none !important;
-  &.active {
-    border-bottom: 2px solid $color-frost-white;
-  }
-}
+.header-nav-btn { margin-left: $spacing-md; @include app-button(transparent, $color-frost-white, $primary-color-hover); background: transparent !important; box-shadow: none !important; &.active { border-bottom: 2px solid $color-frost-white; } }
 
-.header-drawer {
-  .MuiPaper-root {
-    border-radius: 8px;
-    background: $input-bg;
-  }
-}
+.header-drawer { .MuiPaper-root { border-radius: 8px; background: $input-bg; } }
 
-.header-drawer-list-item {
-  border-radius: 8px;
-  margin-bottom: 8px;
-  &:hover {
-    background-color: $hover-bg;
-  }
-}
+.header-drawer-list-item { border-radius: 8px; margin-bottom: $spacing-sm; &:hover { background: $hover-bg; } }
 
 .header-drawer-list-text {
   text-align: right;
@@ -65,10 +38,5 @@
   font-weight: 600;
 }
 
-.header-drawer-user {
-  background: linear-gradient(135deg, $primary-color, darken($primary-color, 8%));
-  color: $color-frost-white;
-  border-radius: 0 0 12px 12px;
-  .header-username { font-weight: 600; }
-  .header-avatar { box-shadow: 0 0 0 3px rgba(255,255,255,0.25); }
-}
+.header-drawer-user { background: linear-gradient(135deg, $primary-color, darken($primary-color, 8%)); color: $color-frost-white; border-radius: 0 0 12px 12px; .header-username { font-weight: 600; } .header-avatar { box-shadow: 0 0 0 3px rgba(255,255,255,0.25); } }
+

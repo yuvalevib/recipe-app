@@ -1,42 +1,20 @@
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-.home-container{
-  padding: 0;
-}
-.home-title {
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 32px;
-}
+.home-container { padding: 0; }
+
+.home-title { font-weight: $font-weight-bold; text-align: center; margin-bottom: $spacing-xl; color: $text-color; @include slide-up-fade(22px, $anim-duration-base); }
 
 .home-grid {
-  margin-top: 8px;
-  height: calc(100vh - 200px);
-  overflow: scroll;
-  padding: 20px;
+  margin-top: $spacing-sm;
+  height: calc(100vh - 220px);
+  overflow: auto;
+  padding: $spacing-md;
 }
 
-.category-card {
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(red($primary-color), green($primary-color), blue($primary-color), 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  background: $surface-color;
+.category-card { position: relative; border-radius: 12px; overflow: hidden; background: $surface-color; box-shadow: $shadow-sm; transition: .2s ease; border: 1px solid $border-color; @include scale-in(.98,.45s); &:hover { transform: translateY(-3px); box-shadow: $shadow-md; } }
 
-  &:hover {
-    transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(red($primary-color), green($primary-color), blue($primary-color), 0.18);
-  }
-}
+.category-media { height: 190px; object-fit: cover; }
 
-.category-media {
-  height: 180px;
-  object-fit: cover;
-}
-
-.category-title {
-  text-align: center;
-  font-weight: 700;
-}
+.category-title { text-align: center; font-weight: $font-weight-bold; letter-spacing: .5px; }
 

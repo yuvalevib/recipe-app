@@ -28,3 +28,21 @@
     transform: translateY(1px);
   }
 }
+
+
+// Motion helpers
+@mixin fade-in($duration: $anim-duration-base, $delay: 0s) {
+  animation: fadeIn $duration $anim-ease-out $delay both;
+}
+@mixin slide-up-fade($distance: 18px, $duration: $anim-duration-base, $delay: 0s) {
+  animation: slideUpFade $duration $anim-ease-out $delay both;
+  --su-distance: #{$distance};
+}
+@mixin scale-in($from: .92, $duration: $anim-duration-base, $delay:0s) {
+  animation: scaleIn $duration $anim-ease-out $delay both;
+  --scale-from: #{$from};
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUpFade { from { opacity: 0; transform: translateY(var(--su-distance, 20px)); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(var(--scale-from, .9)); } to { opacity: 1; transform: scale(1); } }

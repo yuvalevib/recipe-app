@@ -44,3 +44,166 @@ $btn-padding-x: 1.4rem;
 $btn-font-weight: 600;
 $btn-shadow: 0 2px 8px primary-rgba(0.15);
 $btn-transition: background-color .2s ease, box-shadow .2s ease, transform .15s ease;
+
+// Spacing scale (design tokens)
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;
+
+// Updated shadow tokens
+// Shadow tokens (updated to design token spec)
+$shadow-sm: 0 1px 3px rgba(0,0,0,0.10);
+$shadow-md: 0 2px 6px rgba(0,0,0,0.08);
+$shadow-lg: 0 4px 12px rgba(0,0,0,0.10);
+
+// Animation timings & easings
+$anim-duration-fast: .18s;
+$anim-duration-base: .35s;
+$anim-duration-slow: .6s;
+$anim-ease-out: cubic-bezier(.22,.61,.36,1);
+$anim-ease-in: cubic-bezier(.55,.06,.68,.19);
+$anim-ease-in-out: cubic-bezier(.65,.05,.36,1);
+
+// Z-index scale (basic)
+$z-overlay: 9000;
+$z-header: 100;
+$z-modal: 9500;
+
+// Expose core tokens as CSS custom properties for runtime theming
+:root {
+	--color-bg: #{$background-color};
+	--color-surface: #{$surface-color};
+	--color-text: #{$text-color};
+	--color-primary: #{$primary-color};
+	--color-primary-hover: #{$primary-color-hover};
+	--color-border: #{$border-color};
+	--radius-card: #{$card-radius};
+	--shadow-sm: #{$shadow-sm};
+	--shadow-md: #{$shadow-md};
+	--shadow-lg: #{$shadow-lg};
+	--spacing-xs: #{$spacing-xs};
+	--spacing-sm: #{$spacing-sm};
+	--spacing-md: #{$spacing-md};
+	--spacing-lg: #{$spacing-lg};
+	--spacing-xl: #{$spacing-xl};
+	--spacing-2xl: #{$spacing-2xl};
+	--anim-fast: #{$anim-duration-fast};
+	--anim-base: #{$anim-duration-base};
+	--anim-slow: #{$anim-duration-slow};
+	--ease-out: #{$anim-ease-out};
+	--ease-in: #{$anim-ease-in};
+	--ease-in-out: #{$anim-ease-in-out};
+	--font-family-primary: 'Inter', system-ui, "Helvetica Neue", Arial, sans-serif;
+	--font-family-secondary: 'Nunito', system-ui, "Helvetica Neue", Arial, sans-serif;
+	--font-size-xs: 12px;
+	--font-size-sm: 14px;
+	--font-size-md: 16px;
+	--font-size-lg: 20px;
+	--font-size-xl: 24px;
+	--font-size-2xl: 32px;
+	--font-weight-regular: 400;
+	--font-weight-medium: 500;
+	--font-weight-bold: 700;
+	--line-tight: 1.2;
+	--line-normal: 1.5;
+}
+
+// Dark mode (manual class .theme-dark OR system preference)
+// Dark theme overrides (class wins; system preference fallback)
+.theme-dark {
+	--color-bg: #2E3440;
+	--color-surface: #3B4252;
+	--color-text: #ECEFF4;
+	--color-primary: #5E81AC;
+	--color-primary-hover: #{darken($color-ocean-blue, 10%)};
+	--color-border: #4C566A;
+	--shadow-sm: 0 2px 6px rgba(0,0,0,0.5);
+	--shadow-md: 0 4px 16px rgba(0,0,0,0.55);
+	--shadow-lg: 0 8px 28px rgba(0,0,0,0.6);
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-bg: #2E3440;
+		--color-surface: #3B4252;
+		--color-text: #ECEFF4;
+		--color-primary: #5E81AC;
+		--color-primary-hover: #{darken($color-ocean-blue, 10%)};
+		--color-border: #4C566A;
+		--shadow-sm: 0 2px 6px rgba(0,0,0,0.5);
+		--shadow-md: 0 4px 16px rgba(0,0,0,0.55);
+		--shadow-lg: 0 8px 28px rgba(0,0,0,0.6);
+	}
+}
+
+// Reduced motion – define utility class to disable animations
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after {
+	animation: none !important;
+	transition: none !important;
+}
+
+// ----------------------------------------------------------------------------------
+// Design Token Aliases (compatibility layer) ---------------------------------------
+// These map the provided design token JSON keys to SCSS variables. Existing code
+// continues to work; new code should prefer the semantic tokens below.
+
+// Color aliases (camelCase)
+$color-frostWhite: $color-frost-white;
+$color-mistGray: $color-mist-gray;
+$color-slateGray: $color-slate-gray;
+$color-charcoalDark: $color-charcoal; // explicit alias
+$color-oceanBlue: $color-ocean-blue;
+$color-fjordTeal: $color-fjord-teal;
+$color-pineGreen: $color-pine-green;
+$color-nordicRed: $color-nordic-red;
+$color-amberGold: $color-amber;
+$color-rustOrange: $color-rust-orange;
+
+// (Removed legacy $space-* scale; use $spacing-* tokens only)
+
+// Radius tokens
+$radius-sm: 6px;
+$radius-md: 12px;
+$radius-lg: 20px;
+
+// Font family & weights
+$font-family-primary: 'Inter', system-ui, 'Helvetica Neue', Arial, sans-serif;
+$font-family-secondary: 'Nunito', system-ui, 'Helvetica Neue', Arial, sans-serif;
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-md: 16px;
+$font-size-lg: 20px;
+$font-size-xl: 24px;
+$font-size-2xl: 32px;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+$line-height-tight: 1.2;
+$line-height-normal: 1.5;
+
+// Typography mixins (optional usage)
+@mixin type-h1 { font-family: $font-family-primary; font-weight: $font-weight-bold; font-size: $font-size-2xl; line-height: 40px; }
+@mixin type-h2 { font-family: $font-family-primary; font-weight: $font-weight-bold; font-size: $font-size-xl; line-height: 32px; }
+@mixin type-h3 { font-family: $font-family-primary; font-weight: $font-weight-medium; font-size: $font-size-lg; line-height: 28px; }
+@mixin type-body { font-family: $font-family-primary; font-weight: $font-weight-regular; font-size: $font-size-md; line-height: 24px; }
+@mixin type-body-bold { font-family: $font-family-primary; font-weight: $font-weight-medium; font-size: $font-size-md; line-height: 24px; }
+@mixin type-caption { font-family: $font-family-primary; font-weight: $font-weight-regular; font-size: $font-size-xs; line-height: 16px; }
+
+
+// Layout containers
+$content-max-width: 900px;
+
+// Flat background reference tokens (kept for compatibility)
+$background-gradient: $background-color; // used as page background
+$header-gradient: $primary-color; // header background
+
+
+// Elevation overlays using primary color hue
+$card-shadow: 0 6px 20px primary-rgba(.18);
+
+// Typography scale
+$font-weight-bold: 700;
+
+

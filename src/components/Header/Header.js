@@ -36,6 +36,7 @@ function Header() {
         setUser(currentUser());
     }, [location.pathname]);
 
+
     const handleLogout = () => {
         logout();
         setUser(null);

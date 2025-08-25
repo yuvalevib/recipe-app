@@ -3,9 +3,13 @@
 
 body {
   font-family: 'Arial', sans-serif;
-  background-color: $background-color;
+  background: $background-gradient;
   color: $text-color;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
+
+.app-surface-card { @include card; padding: $spacing-lg; }
 
 // Global button baseline (fallback for unclassified buttons)
 button, .MuiButton-root {
