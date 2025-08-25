@@ -2,6 +2,30 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+// Load environment variables early (first try local folder .env, then parent project .env)
+try {
+    const dotenv = require('dotenv');
+    const envLocal = path.resolve(__dirname, '.env');
+    const envParent = path.resolve(__dirname, '..', '.env');
+    let loaded = false;
+    if (fs.existsSync(envLocal)) {
+        dotenv.config({ path: envLocal });
+        loaded = true;
+    }
+    if (!loaded && fs.existsSync(envParent)) {
+        dotenv.config({ path: envParent });
+        loaded = true;
+    }
+    if (!loaded) {
+        // Fallback to default path (process.cwd())
+        dotenv.config();
+    }
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+        console.log('[env] CLOUDINARY_* vars not found. Cloudinary uploads will be disabled.');
+    }
+} catch (e) {
+    console.warn('[env] dotenv load failed (optional):', e && e.message);
+}
 
 const app = express();
 
