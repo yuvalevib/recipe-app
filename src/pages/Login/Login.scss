@@ -1,3 +1,6 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
 .login-container {
 	display: flex;
 	align-items: center;
@@ -13,5 +16,11 @@
 }
 
 .login-form {
+	width: 100%;
+}
+
+.login-form button,
+.login-form .MuiButton-root {
+	@include app-button();
 	width: 100%;
 }

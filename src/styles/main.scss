@@ -4,4 +4,10 @@
 body {
   font-family: 'Arial', sans-serif;
   background-color: $background-color;
+  color: $text-color;
+}
+
+// Global button baseline (fallback for unclassified buttons)
+button, .MuiButton-root {
+  font-family: inherit;
 }

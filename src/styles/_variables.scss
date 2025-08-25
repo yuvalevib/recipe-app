@@ -1,7 +1,46 @@
-$primary-color: #1976d2;
-$secondary-color: #dc004e;
-$background-color: #f9f9f9;
+$color-frost-white: #ECEFF4;
+$color-mist-gray:   #D8DEE9;
+$color-slate-gray:  #4C566A;
+$color-charcoal:    #2E3440;
+
+$color-ocean-blue:  #5E81AC;
+$color-fjord-teal:  #88C0D0;
+$color-pine-green:  #8FBCBB;
+
+$color-nordic-red:  #BF616A;
+$color-amber:       #EBCB8B;
+$color-rust-orange: #D08770;
+
 $card-radius: 12px;
 $card-shadow: 0 8px 32px rgba(25, 118, 210, 0.2);
 $input-bg: #f5f5f5;
 $hover-bg: #e3eafc;
+
+// Semantic aliases for easier usage
+$primary-color: $color-ocean-blue;
+$primary-color-hover: darken($color-ocean-blue, 7%);
+$secondary-color: $color-nordic-red;
+$background-color: $color-frost-white;
+$text-color: $color-charcoal;
+$border-color: $color-mist-gray;
+$success-color: $color-pine-green;
+$warning-color: $color-amber;
+$danger-color: $color-nordic-red;
+
+// Surfaces & neutrals
+$surface-color: #ffffff;
+$surface-alt-color: lighten($color-frost-white, 2%);
+$border-light: #ccc;
+
+// Derived shadows using primary color components
+@function primary-rgba($alpha) {
+	@return rgba(red($primary-color), green($primary-color), blue($primary-color), $alpha);
+}
+
+// Button styling tokens
+$btn-radius: 8px;
+$btn-padding-y: 0.6rem;
+$btn-padding-x: 1.4rem;
+$btn-font-weight: 600;
+$btn-shadow: 0 2px 8px primary-rgba(0.15);
+$btn-transition: background-color .2s ease, box-shadow .2s ease, transform .15s ease;

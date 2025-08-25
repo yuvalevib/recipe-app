@@ -19,13 +19,13 @@
 .category-card {
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+  box-shadow: 0 2px 8px rgba(red($primary-color), green($primary-color), blue($primary-color), 0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  background: #fff;
+  background: $surface-color;
 
   &:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(25, 118, 210, 0.18);
+  box-shadow: 0 8px 24px rgba(red($primary-color), green($primary-color), blue($primary-color), 0.18);
   }
 }
 

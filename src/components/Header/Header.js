@@ -37,7 +37,11 @@ function Header() {
     const handleLogout = () => {
         logout();
         setUser(null);
-        navigate('/');
+        // Notify app shell
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('auth-changed'));
+        }
+        navigate('/login');
     };
 
     const toggleDrawer = (open) => () => {
@@ -67,7 +71,7 @@ function Header() {
                 <ListItem
                     button
                     component={Link}
-                    to={user ? '/' : '/login'}
+                    to={user ? '/login' : '/login'}
                     onClick={user ? handleLogout : undefined}
                     className="header-drawer-list-item"
                 >
@@ -112,7 +116,7 @@ function Header() {
                         <Button
                             color="inherit"
                             component={Link}
-                            to={user ? '/' : '/login'}
+                            to="/login"
                             onClick={user ? handleLogout : undefined}
                             className="header-nav-btn"
                         >

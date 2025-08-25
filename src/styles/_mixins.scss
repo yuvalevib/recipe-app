@@ -1,11 +1,29 @@
 @mixin card {
   border-radius: $card-radius;
-  box-shadow: $card-shadow;
-  background: #fff;
+  box-shadow: 0 8px 32px primary-rgba(0.2);
+  background: $surface-color;
 }
 
 @mixin flex-center {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+@mixin app-button($bg: $primary-color, $fg: $color-frost-white, $bg-hover: $primary-color-hover) {
+  background-color: $bg !important;
+  color: $fg !important;
+  border-radius: $btn-radius !important;
+  padding: $btn-padding-y $btn-padding-x !important;
+  font-weight: $btn-font-weight !important;
+  box-shadow: $btn-shadow !important;
+  text-transform: none !important;
+  transition: $btn-transition !important;
+  &:hover, &:focus {
+    background-color: $bg-hover !important;
+    box-shadow: 0 4px 16px primary-rgba(0.25) !important;
+  }
+  &:active {
+    transform: translateY(1px);
+  }
 }

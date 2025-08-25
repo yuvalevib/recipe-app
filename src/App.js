@@ -48,9 +48,18 @@ function AppShell() {
                 setUser(currentUser());
             }
         };
+        const onAuthChanged = () => setUser(currentUser());
         window.addEventListener('storage', onStorage);
+        window.addEventListener('auth-changed', onAuthChanged);
         return () => window.removeEventListener('storage', onStorage);
     }, []);
+
+    // Ensure redirect if user became null while on a protected route
+    useEffect(() => {
+        if (!user && location.pathname !== '/login') {
+            navigate('/login', { replace: true });
+        }
+    }, [user, location.pathname, navigate]);
 
     const handleLogin = (u) => {
         setUser(u);

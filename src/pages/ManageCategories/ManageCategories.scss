@@ -19,10 +19,17 @@
   margin-bottom: 24px;
 }
 
+.manage-categories-form .MuiButton-root,
+.manage-categories-edit-form .MuiButton-root,
+.manage-categories-list .MuiButton-root {
+  @include app-button();
+  padding: 0.4rem 1rem !important;
+}
+
 .manage-categories-list {
-  background: #fff;
+  background: $surface-color;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.10);
+  box-shadow: 0 4px 16px primary-rgba(0.10);
   padding: 16px;
 }
 

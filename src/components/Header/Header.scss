@@ -3,7 +3,7 @@
 
 .header-appbar {
   background-color: $primary-color !important;
-  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.15);
+  box-shadow: 0 4px 16px rgba(red($primary-color), green($primary-color), blue($primary-color), 0.15);
   border-radius: 0;
   margin-bottom: 16px;
 }
@@ -21,22 +21,17 @@
 
 .header-menu-btn {
   margin-right: 16px;
-  background-color: #1565c0 !important;
+  background-color: $primary-color-hover !important;
   border-radius: 8px;
 }
 
 .header-nav-btn {
   margin-left: 16px;
-  font-weight: 600;
-  border-radius: 8px;
-  background: transparent;
-  transition: background 0.2s;
+  @include app-button(transparent, $color-frost-white, $primary-color-hover);
+  background: transparent !important;
+  box-shadow: none !important;
   &.active {
-    border-bottom: 2px solid white;
-    background-color: #1565c0;
-  }
-  &:hover {
-    background-color: #1565c0;
+    border-bottom: 2px solid $color-frost-white;
   }
 }
 
