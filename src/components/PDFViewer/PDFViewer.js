@@ -12,51 +12,40 @@ function PDFViewer({ pdfUrl }) {
         setIsFullSize(!isFullSize);
     };
 
-    // Fetch PDF as blob with auth header (since iframe cannot send Authorization header by itself)
+    // New strategy: embed direct URL (Cloudinary or server /api/recipe/:id) without fetching.
+    // This avoids CORS/401 issues with signed Cloudinary transformations or access controls.
     useEffect(() => {
         if (!pdfUrl) return;
-        let revoked = false;
-        async function load() {
-            setLoading(true); setError('');
-            // Revoke existing
-            if (blobUrl) {
-                URL.revokeObjectURL(blobUrl);
-                setBlobUrl(null);
-            }
+        setError('');
+        setLoading(false);
+        // Clean previous created blob object if any (we no longer create new ones here)
+        if (blobUrl && blobUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(blobUrl);
+        }
+        // Accept direct embed if Cloudinary host or our API route
+        if (/res\.cloudinary\.com/.test(pdfUrl) || /\/api\/recipe\//.test(pdfUrl)) {
+            setBlobUrl(pdfUrl);
+            return;
+        }
+        // Fallback: attempt fetch (rare path)
+        let canceled = false;
+        (async () => {
             try {
-                // Use axios instance to get base URL/header, but need raw blob; fallback to fetch for streaming
-                // If pdfUrl points directly to Cloudinary (https://res.cloudinary.com/...), let browser load it in iframe without blob indirection
-                if (/res\.cloudinary\.com/.test(pdfUrl)) {
-                    setBlobUrl(pdfUrl);
-                    setLoading(false);
-                    return;
-                }
+                setLoading(true);
                 const res = await fetch(pdfUrl, { headers: { 'Accept': 'application/pdf' } });
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}`);
-                }
-                // Force correct MIME so iframe renders inline
-                const fetchedBlob = await res.blob();
-                const blob = fetchedBlob.type === 'application/pdf'
-                    ? fetchedBlob
-                    : new Blob([fetchedBlob], { type: 'application/pdf' });
-                if (revoked) return; // component unmounted
-                const url = URL.createObjectURL(blob);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const fetched = await res.blob();
+                if (canceled) return;
+                const url = URL.createObjectURL(fetched.type === 'application/pdf' ? fetched : new Blob([fetched], { type: 'application/pdf' }));
                 setBlobUrl(url);
             } catch (e) {
-                if (String(e.message).includes('404')) {
-                    setError('הקובץ לא נמצא');
-                } else {
-                    setError('שגיאה בטעינת הקובץ');
-                }
+                setError(String(e.message).includes('404') ? 'הקובץ לא נמצא' : 'שגיאה בטעינת הקובץ');
                 console.error('[PDFViewer] Failed to load PDF', e);
             } finally {
-                if (!revoked) setLoading(false);
+                if (!canceled) setLoading(false);
             }
-        }
-        load();
-        return () => { revoked = true; if (blobUrl) URL.revokeObjectURL(blobUrl); };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        })();
+        return () => { canceled = true; };
     }, [pdfUrl]);
 
     return (
