@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     AppBar,
     Toolbar,
@@ -12,18 +12,33 @@ import {
     Button
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { currentUser, logout } from '../../services/api';
 import './Header.scss';
 
-const navItems = [
-    { label: 'בית', path: '/' },
+const baseNavItems = [
+    { label: 'בית', path: '/' }
+];
+const protectedNavItems = [
     { label: 'העלאת מתכון', path: '/upload' },
     { label: 'ניהול קטגוריות', path: '/manage-categories' }
 ];
 
 function Header() {
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [user, setUser] = useState(currentUser());
     const location = useLocation();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        setUser(currentUser());
+    }, [location.pathname]);
+
+    const handleLogout = () => {
+        logout();
+        setUser(null);
+        navigate('/');
+    };
 
     const toggleDrawer = (open) => () => {
         setDrawerOpen(open);
@@ -37,7 +52,7 @@ function Header() {
             className="header-drawer"
         >
             <List>
-                {navItems.map((item) => (
+                {[...baseNavItems, ...(user ? protectedNavItems : [])].map((item) => (
                     <ListItem
                         button
                         key={item.label}
@@ -49,6 +64,15 @@ function Header() {
                         <ListItemText primary={item.label} className="header-drawer-list-text" />
                     </ListItem>
                 ))}
+                <ListItem
+                    button
+                    component={Link}
+                    to={user ? '/' : '/login'}
+                    onClick={user ? handleLogout : undefined}
+                    className="header-drawer-list-item"
+                >
+                    <ListItemText primary={user ? 'התנתק' : 'התחבר'} className="header-drawer-list-text" />
+                </ListItem>
             </List>
         </Box>
     );
@@ -74,7 +98,7 @@ function Header() {
 
                     {/* כפתורים במסכים גדולים */}
                     <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
-                        {navItems.map((item) => (
+                        {[...baseNavItems, ...(user ? protectedNavItems : [])].map((item) => (
                             <Button
                                 key={item.label}
                                 color="inherit"
@@ -85,6 +109,15 @@ function Header() {
                                 {item.label}
                             </Button>
                         ))}
+                        <Button
+                            color="inherit"
+                            component={Link}
+                            to={user ? '/' : '/login'}
+                            onClick={user ? handleLogout : undefined}
+                            className="header-nav-btn"
+                        >
+                            {user ? 'התנתק' : 'התחבר'}
+                        </Button>
                     </Box>
                 </Toolbar>
             </AppBar>

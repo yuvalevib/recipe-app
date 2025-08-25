@@ -47,6 +47,25 @@ app.get('/api/ping', (req, res) => {
     res.json({ ok: true });
 });
 
+// Auth routes
+const { router: authRoutes, JWT_SECRET } = require('./routes/auth');
+const jwt = require('jsonwebtoken');
+app.use('/api/auth', authRoutes);
+
+// Simple auth middleware (can be applied selectively later)
+function authRequired(req, res, next) {
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ message: 'Unauthorized' });
+    try {
+        const payload = jwt.verify(token, JWT_SECRET);
+        req.user = payload;
+        next();
+    } catch (e) {
+        return res.status(401).json({ message: 'Invalid token' });
+    }
+}
+
 const recipeRoutes = require('./routes/recipes');
 app.use('/api', recipeRoutes);
 
