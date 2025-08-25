@@ -18,6 +18,7 @@ function Upload() {
     const [imageFile, setImageFile] = useState(null);
     const [imageUrl, setImageUrl] = useState('');
     const [categories, setCategories] = useState([]);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         API.get('/categories').then(res => setCategories(res.data));
@@ -26,7 +27,8 @@ function Upload() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const formData = new FormData();
+    setError('');
+    const formData = new FormData();
         formData.append('name', name);
         formData.append('categoryId', categoryId);
         formData.append('file', file);
@@ -37,16 +39,21 @@ function Upload() {
             formData.append('imageUrl', imageUrl);
         }
 
-        await API.post('/upload', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-
-        alert('Recipe uploaded successfully!');
-        setName('');
-        setCategoryId('');
-        setFile(null);
-        setImageFile(null);
-        setImageUrl('');
+        try {
+            const res = await API.post('/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            alert('Recipe uploaded successfully!');
+            setName('');
+            setCategoryId('');
+            setFile(null);
+            setImageFile(null);
+            setImageUrl('');
+        } catch (e) {
+            const msg = e.response?.data?.error || e.response?.data?.message || e.message;
+            setError(msg + (e.response?.data?.details ? ' | ' + e.response.data.details : ''));
+            console.error('[Upload] failed', e.response?.data || e);
+        }
     };
 
     return (
@@ -56,6 +63,7 @@ function Upload() {
                     העלאת מתכון חדש
                 </Typography>
                 <form onSubmit={handleSubmit} className="upload-form">
+                    {error && <div style={{color:'red', fontSize:'0.9rem', direction:'ltr'}}>{error}</div>}
                     <TextField
                         label="שם המתכון"
                         value={name}

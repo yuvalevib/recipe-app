@@ -1,14 +1,16 @@
 [
   {
-    "_id": "mercbg5lhtb6mb45",
-    "name": "sda",
-    "categoryId": "mer6p48qc6cll7mu",
-    "pdfPath": "1756139839109.pdf"
-  },
-  {
-    "_id": "merdemt98kmmddf0",
+    "_id": "mergqezg3nawbxne",
     "name": "test",
     "categoryId": "mer6p48qc6cll7mu",
-    "pdfPath": "1756141667320.pdf"
+    "pdfPath": "recipes/pdfs/nspurdpjt2yjuqof03tm",
+    "pdfUrl": "https://res.cloudinary.com/doisqgr0h/raw/upload/v1756147255/recipes/pdfs/nspurdpjt2yjuqof03tm"
+  },
+  {
+    "_id": "mergtzugefpnxbe9",
+    "name": "בדיקה חדש",
+    "categoryId": "mer6p48qc6cll7mu",
+    "pdfPath": "recipes/pdfs/wl3g5jhgvwtqs2i5jaht",
+    "pdfUrl": "https://res.cloudinary.com/doisqgr0h/raw/upload/v1756147422/recipes/pdfs/wl3g5jhgvwtqs2i5jaht"
   }
 ]

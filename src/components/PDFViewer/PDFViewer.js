@@ -60,7 +60,7 @@ function PDFViewer({ pdfUrl }) {
             {error && <div style={{ color: 'red', padding: '0.5rem', textAlign: 'center' }}>{error}</div>}
             {!loading && !error && blobUrl && (
                 <iframe
-                    src={blobUrl}
+                    src={blobUrl + (blobUrl.includes('#') ? '' : '#toolbar=0')}
                     title="Recipe PDF"
                     width="100%"
                     height="600px"

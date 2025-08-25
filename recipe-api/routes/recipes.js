@@ -24,6 +24,7 @@ if (useCloudinary) {
 }
 const path = require('path');
 const fs = require('fs').promises;
+const https = require('https');
 // Auth no longer enforced for these resource routes (login kept separately)
 
 const router = express.Router();
@@ -119,6 +120,22 @@ router.get('/cloudinary/status', (req, res) => {
         hasApiKey: !!process.env.CLOUDINARY_API_KEY,
         hasApiSecret: !!process.env.CLOUDINARY_API_SECRET ? 'set' : 'missing',
         sampleUploadFolder: useCloudinary ? 'recipes' : null
+    });
+});
+
+// Deeper debug (masked) for troubleshooting 500s (do NOT expose in production normally)
+router.get('/cloudinary/debug', (req, res) => {
+    const mask = (v) => v ? v.slice(0,4)+'***' : null;
+    const rawKey = process.env.CLOUDINARY_API_KEY || '';
+    res.json({
+        useCloudinary,
+        cloud: mask(process.env.CLOUDINARY_CLOUD_NAME || ''),
+        keyMasked: mask(rawKey.replace(/['",]/g,'')),
+        keyLength: rawKey.length,
+        trailingChars: rawKey.slice(-2),
+        hasTrailingComma: /,$/.test(rawKey),
+        hasQuotes: /^"|^'/.test(rawKey) || /"$|'$/.test(rawKey),
+        numericOnlyAfterClean: /^\d+$/.test(rawKey.replace(/['",]/g,'')),
     });
 });
 
@@ -338,8 +355,29 @@ router.get('/recipe/:id', async (req, res) => {
             return res.status(404).send('Recipe not found');
         }
         if (useCloudinary && recipe.pdfUrl) {
-            // Cloudinary already serves with correct headers; redirect
-            return res.redirect(recipe.pdfUrl);
+            // Stream from Cloudinary and force inline headers (avoid attachment/download behavior)
+            const targetUrl = recipe.pdfUrl;
+            console.log('[cloudinary][pdf] streaming', targetUrl);
+            https.get(targetUrl, (cr) => {
+                if (cr.statusCode !== 200) {
+                    console.warn('[cloudinary][pdf] fetch failed status', cr.statusCode);
+                    res.status(502).send('Upstream PDF fetch failed');
+                    cr.resume();
+                    return;
+                }
+                res.setHeader('Content-Type', 'application/pdf');
+                const safeName = (recipe.name || 'recipe').replace(/[^A-Za-z0-9._-]+/g,'_');
+                res.setHeader('Content-Disposition', `inline; filename="${safeName}.pdf"`);
+                // Propagate length if known
+                if (cr.headers['content-length']) {
+                    res.setHeader('Content-Length', cr.headers['content-length']);
+                }
+                cr.pipe(res);
+            }).on('error', (e) => {
+                console.error('[cloudinary][pdf] stream error', e && e.message);
+                res.status(500).send('PDF stream error');
+            });
+            return;
         }
         const filePath = path.resolve(uploadsDir, recipe.pdfPath);
         // Ensure inline viewing
